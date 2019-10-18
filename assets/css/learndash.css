@@ -6,6 +6,7 @@ This is the LearnDash plugin stylesheet.
 1.0 - Global
 2.0 - Courses list
 3.0 - Course
+    3.1 - Course Content
 4.0 - Widgets
     4.1 - Course Information
     4.2 - Course Participants
@@ -133,9 +134,15 @@ This is the LearnDash plugin stylesheet.
     margin-bottom: 33px;
     width: 100%;
 }
+
+#learndash_topic_dots {
+    margin-bottom: 30px;
+}
+
 #course-list-wrap {
     margin-left: -22px;
     margin-right: -22px;
+    margin-bottom: 20px;
 
     display: -webkit-box;
     display: -webkit-flex;
@@ -146,7 +153,22 @@ This is the LearnDash plugin stylesheet.
     -ms-flex-wrap: wrap;
     flex-wrap: wrap;
 }
+.ld-course-list-items.row {
+    margin: 0;
+    padding: 0 20px;
+    width: 100%;
+}
+.ld-course-list-items .quiz.ld-item {
+    box-sizing: border-box;
+}
 .ld-course-list-content {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-flow: row wrap;
+    flex-flow: row wrap;
     min-width: 100%;
 }
 #course-list-wrap #ld_course_categorydropdown,
@@ -202,7 +224,8 @@ This is the LearnDash plugin stylesheet.
     box-sizing: border-box;
     position: relative;
 }
-.course-inner p.entry-content .morecontent span {
+
+.course-inner .course-short-description .morecontent span {
     display: none;
 }
 
@@ -215,38 +238,47 @@ This is the LearnDash plugin stylesheet.
     max-height: 65px;
     margin-top: 0;
 }
-.course-inner p.entry-content {
+
+.course-inner .course-short-description {
     font-size: 14px;
 }
+
 .sensei-course-meta .course-author {
     display: block;
 }
+
 .course-inner .sensei-course-meta {
     font-size: .9em;
     color: #888;
     margin-bottom: 0;
 }
+
 .course-inner .sensei-course-meta .price {
     color: #012243;
 }
+
 .course-inner .sensei-course-meta ins {
     background-color: transparent;
 }
+
 #primary .course-lesson-count {
     display: block;
     text-align: right;
     float: right;
     width: 100%;
 }
+
 .course-image {
     position: relative;
     overflow: hidden;
 }
+
 .course-image img {
     vertical-align: bottom;
     margin: 0;
     width: 100%;
 }
+
 .course-border-inner:before, .course-border, .course-overlay, .course-mask {
     position: absolute;
     width: 100%;
@@ -258,24 +290,29 @@ This is the LearnDash plugin stylesheet.
     -o-transition: all .3s;
     transition: all .3s;
 }
+
 .course-border {
     opacity: 1;
     padding: 6px;
     box-sizing: border-box;
 }
+
 .course-border-inner {
     position: relative;
     height: 100%;
 }
+
 .course-border-inner:before {
     content: '';
     border: 1px solid #d5754b;
     box-sizing: border-box;
     opacity: .35;
 }
+
 .course-mask {
     background-color: #ff6138;
 }
+
 a.bb-course-link {
     background: rgba(255, 97, 56, 0.4);
     position: absolute;
@@ -757,8 +794,9 @@ body .learndash_navigation_lesson_topics_list  .list_arrow.collapse {
 #learndash_profile #course_list h4 > a.notavailable:after,
 .ld-item .notavailable:before,
 .learndash .notavailable:before {
-    content: '\f10c';
+	content: '\f111';
     color: #6b6f72;
+	font-weight: 400;
 }
 #learndash_profile #course_list h4 > a.in-progress:after,
 .ld-item .in-progress:before,
@@ -946,7 +984,7 @@ body .learndash_navigation_lesson_topics_list  .list_arrow.collapse {
 .widget_ldcourseprogress dd.course_progress {
     background-color: rgba(0,0,0,0.1);
 }
-.widget dd.course_progress div.course_progress_blue {
+.widget.widget dd.course_progress div.course_progress_blue {
     background-color: #fff;
 }
 .widget_ldcourseprogress h4,
@@ -971,6 +1009,50 @@ body .learndash_navigation_lesson_topics_list  .list_arrow.collapse {
 #course-list-wrap .progress-wrap {
     line-height: 2;
 }
+
+/*----------------------------------------------------------------
+3.1 - Course Content
+-----------------------------------------------------------------*/
+
+#lessons_list > div[class^="post-"] {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: flex-start;
+        -ms-flex-align: flex-start;
+            align-items: flex-start;
+}
+
+#lessons_list > div[class^="post-"] .list-count {
+    margin-right: 15px;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+#lessons_list > div[class^="post-"] h4 {
+    margin-top: 0;
+}
+
+#lessons_list > div[class^="post-"] h4 ul {
+    margin: 0;
+    list-style: none;
+}
+
+#lessons_list > div[class^="post-"] h4 ul li {
+    margin-left: 20px;
+}
+
+#learndash_lessons #lesson_heading .right {
+    margin-left: auto;
+}
+
+#lessons_list .ld-lesson-section-heading {
+    font-size: 16px;
+    line-height: 1.8;
+    font-weight: 700;
+    padding: 20px;
+}
+
 /*----------------------------------------------------------------
 4.0 - Widgets
 -----------------------------------------------------------------*/
@@ -1752,12 +1834,12 @@ input[type="button"]:not(.button-small).wpProQuiz_button[value="Finish quiz"],
     -moz-box-shadow: 0px 0px 0px 2px #d4dce6;
     box-shadow: 0px 0px 0px 2px #d4dce6;
     left: -31px;
-    top: 1px;
+    top: 3px;
 }
 .wpProQuiz_questionList input[type="checkbox"] + strong:before {
     width: 14px;
     height: 14px;
-    top: 1px;
+    top: 3px;
 }
 .wpProQuiz_questionList input[type="radio"] + strong:before {
     border: 7px solid #fff;
@@ -1767,7 +1849,7 @@ input[type="button"]:not(.button-small).wpProQuiz_button[value="Finish quiz"],
     width: 10px;
     height: 10px;
     left: -29px;
-    top: 3px;
+    top: 5px;
     border-radius: 2px;
     background-color: #00a6dc;
 }
@@ -2160,6 +2242,8 @@ span.wpProQuiz_catPercent {
 #sfwd-mark-complete {
     margin-bottom: 20px;
 }
+
+.learndash_mark_complete_button,
 #learndash_back_to_lesson {
     margin-bottom: 30px;
 }
@@ -2610,6 +2694,95 @@ span.wpProQuiz_catPercent {
     margin: auto;
     background-size: 16px;
 }
+
+div.learndash_navigation_lesson_topics_list {
+    margin-bottom: 15px;
+}
+
+.learndash_navigation_lesson_topics_list>div {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.11);
+    margin: 0 -30px 0;
+    padding: 12px 30px;
+}
+
+.learndash_navigation_lesson_topics_list>div.ld-item-list-section-heading {
+	font-weight: 700;
+}
+
+.learndash_navigation_lesson_topics_list>div:first-child {
+    border-top: 1px solid rgba(0,0,0,0.11);
+    margin-top: 15px;
+}
+
+#course_navigation .list_arrow {
+    background: 0 0!important;
+    padding: 0 !important;
+    border: 1px solid rgba(0,0,0,0.3);
+    border-radius: 3px;
+    height: 18px;
+    box-sizing: border-box;
+    text-align: center;
+    line-height: 1;
+    margin-right: 10px;
+    margin-top: 0;
+    cursor: pointer;
+    width: auto;
+    min-width: 20px;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+}
+
+#course_navigation .list_arrow.expand {
+    transform: rotate(90deg);
+}
+
+#course_navigation .list_arrow:before {
+    content: "\f0da";
+    display: inline-block;
+    font: normal normal normal 14px/1 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transform: translate(0, 0);
+    font-size: 13px;
+    position: relative;
+    top: 0;
+    color: inherit;
+}
+
+.widget_ldcoursenavigation .quiz-item a:before {
+    content: '?';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    border: 1px solid rgba(0,0,0,0.3);
+    border-radius: 3px;
+    text-align: center;
+    font-weight: bold;
+    margin-right: -10px;
+}
+
+.course_navigation .list_lessons {
+    flex: 1;
+}
+
+.course_navigation .learndash_navigation_lesson_topics_list .lesson {
+    margin: 0;
+}
+
+.learndash_navigation_lesson_topics_list .topic-notcompleted span {
+    line-height: 1.5;
+}
+
 @media screen and (max-width: 600px) {
     #learndash_profile #course_list .overview .table-cell,
     #learndash_profile #course_list .overview .table-cell:first-child {

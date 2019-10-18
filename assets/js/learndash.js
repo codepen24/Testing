@@ -55,7 +55,7 @@
         lessText: bossLdVars.seeless
     };
 
-    $('.course-inner p.entry-content').generateMoreLink();
+    $('.course-inner .course-short-description').generateMoreLink();
 
     /**
      * -------------------------------------------------------------------------------------
@@ -229,6 +229,7 @@
                 function(response) {
 
                     if ( response.length > 0 && response != 'Failed' ) {
+	                    $('.boss-edu-teacher-message').val('');
                         $('.widget_course_teacher h3').append('<div class="learndash-message tick">' + bossLdVars.messagesent + '</div>');
                     }
                 });
@@ -289,6 +290,17 @@
         }
     });
 
+    $('.wpProQuiz_questionInput[type=radio], .wpProQuiz_questionInput[type=checkbox]').each(function(){
+	var $this = $( this );
+
+        if( ! $this.hasClass('styled') ) {
+            $this.addClass( 'styled' );
+            if ( $this.next( "label" ).length === 0 && $this.next( "strong" ).length === 0 ) {
+                $this.after( '<strong></strong>' );
+            }
+        }
+    } );
+
     $('.wpProQuiz_questionInput').change(function(){
         if($(this).attr('type') == 'radio') {
             $(this).parents('.wpProQuiz_questionList').find('.wpProQuiz_questionListItem').each(function(){
@@ -298,6 +310,13 @@
         } else if($(this).attr('type') == 'checkbox') {
             $(this).parent('label').toggleClass('selected');
         }
+    });
+
+    $('.wpProQuiz_results').on('click','input[name="restartQuiz"]',function(){
+	    $('.wpProQuiz_questionInput[type=radio], .wpProQuiz_questionInput[type=checkbox]').each(function(){
+		    var $this = $(this);
+		    $this.parents('label').removeClass('selected');
+	    });
     });
 
     $('.drop-list').click(function(){
@@ -371,7 +390,7 @@
 			return;
 
 		setTimeout( function () {
-			$('.course-inner p.entry-content').generateMoreLink();
+			$('.course-inner .course-short-description').generateMoreLink();
 			equalProjects();
 			$(window).trigger('resize');
 		}, 500 );
