@@ -18,11 +18,19 @@ function boss_child_theme_setup() {
 	 */
 
 	// Translate text from the PARENT theme.
-	load_theme_textdomain( 'boss', get_stylesheet_directory() . '/languages' );
+	// load_theme_textdomain( 'boss', get_stylesheet_directory() . '/languages' );
 
 	// Translate text from the CHILD theme only.
 	// Change 'boss' instances in all child theme files to 'boss_child_theme'.
 	// load_theme_textdomain( 'boss_child_theme', get_stylesheet_directory() . '/languages' );
+
+
+define( 'BPLANG', 'zh_CN' );
+if ( file_exists( get_stylesheet_directory() . '/languages' . '/boss-' . BPLANG . '.mo' ) ) {
+    load_textdomain( 'boss_child_theme', get_stylesheet_directory() . '/languages' . '/boss-' . BPLANG . '.mo' );
+}
+
+
 }
 add_action( 'after_setup_theme', 'boss_child_theme_setup' );
 
@@ -408,7 +416,7 @@ function convert_address_to_geolocation($address) {
 
 add_filter( 'avatar_defaults', 'new_gravatar' );
     function new_gravatar ($avatar_defaults) {
-    $myavatar = 'https://members.transculturalgroup.com/wp-content/uploads/2019/12/default_global_avatar-200x200.png';
+    $myavatar = 'https://members-cn.transculturalgroup.com/wp-content/uploads/2019/12/default_global_avatar-200x200.png';
     $avatar_defaults[$myavatar] = "Default Gravatar";
     return $avatar_defaults;
 }
@@ -431,7 +439,7 @@ add_filter( 'avatar_defaults', 'new_gravatar' );
 function ibenic_buddypress_tab() {
   global $bp;
   bp_core_new_nav_item( array( 
-        'name' => __( 'My Orders', 'ibenic' ), 
+        'name' => __( '我的订单' ), 
         'slug' => 'woo-orders', 
         'position' => 100,
         'screen_function' => 'my_order_res_func',
@@ -477,7 +485,7 @@ function ibenic_buddypress_recent_posts_content() {
 function my_achievements_func_tab() {
   global $bp;
   bp_core_new_nav_item( array( 
-        'name' => __( 'My Achievements', 'ibenic' ), 
+      'name' => __('我的成就'), 
         'slug' => 'prof-achievements', 
         'position' => 101,
         'screen_function' => 'my_achievements_func',
@@ -502,3 +510,12 @@ function my_achievements_func_content() {
   $prof_achievements = do_shortcode('[badgeos_achievements_list type="badge" limit="50" orderby="title" order="ASC" wpms="false"]');
   echo $prof_achievements; 
 }
+
+define( 'BPLANG', 'zh_CN' );
+if ( file_exists( get_stylesheet_directory() . '/languages' . '/buddypress-' . BPLANG . '.mo' ) ) {
+    load_textdomain( 'buddypress', get_stylesheet_directory() . '/languages' . '/buddypress-' . BPLANG . '.mo' );
+}
+
+
+
+
