@@ -449,7 +449,9 @@ function html5_shortcode_demo_2($atts, $content = null) // Demo Heading H2 short
     return '<h2>' . $content . '</h2>';
 }
 
-// news
+register_post_type( 'news', $args );
+
+// news-cn
 $labels = array(
 	'name'               => 'News',
 	'singular_name'      => 'News',
@@ -473,7 +475,7 @@ $args = array(
 	'show_ui'            => true,
 	'show_in_menu'       => true,
 	'query_var'          => true,
-	'rewrite'            => array( 'slug' => 'news' ),
+	'rewrite'            => array( 'slug' => 'news-cn' ),
 	'capability_type'    => 'post',
 	'has_archive'        => true,
 	'hierarchical'       => false,
@@ -481,7 +483,8 @@ $args = array(
 	'supports'           => array( 'title', 'thumbnail', 'editor', 'excerpt' ),
 );
 
-register_post_type( 'news', $args );
+register_post_type( 'news-cn', $args );
+
 
 // Team
 $labels = array(
@@ -517,7 +520,7 @@ $args = array(
 
 register_post_type( 'team', $args );
 
-// Video Gallery
+// Video Gallery - CN
 $labels = array(
 	'name'               => 'Video Gallery',
 	'singular_name'      => 'Video Gallery',
@@ -531,7 +534,7 @@ $labels = array(
 	'not_found'          => 'No Video Gallery found',
 	'not_found_in_trash' => 'No Video Gallery found in Trash',
 	'parent_item_colon'  => '',
-	'menu_name'          => 'Video Gallery',
+	'menu_name'          => 'Video Gallery ',
 );
 
 $args = array(
@@ -541,7 +544,7 @@ $args = array(
 	'show_ui'            => true,
 	'show_in_menu'       => true,
 	'query_var'          => true,
-	'rewrite'            => array( 'slug' => 'videogallery' ),
+	'rewrite'            => array( 'slug' => 'videogallery-cn' ),
 	'capability_type'    => 'post',
 	'has_archive'        => true,
 	'hierarchical'       => false,
@@ -549,9 +552,9 @@ $args = array(
 	'supports'           => array( 'title', 'thumbnail', 'editor', 'excerpt' ),
 );
 
-register_post_type( 'videogallery', $args );
+register_post_type( 'videogallery-cn', $args );
 
-// Events
+// Events-CN
 $labels = array(
 	'name'               => 'Events',
 	'singular_name'      => 'Events',
@@ -575,7 +578,7 @@ $args = array(
 	'show_ui'            => true,
 	'show_in_menu'       => true,
 	'query_var'          => true,
-	'rewrite'            => array( 'slug' => 'events' ),
+	'rewrite'            => array( 'slug' => 'events-cn' ),
 	'capability_type'    => 'post',
 	'has_archive'        => true,
 	'hierarchical'       => false,
@@ -583,12 +586,11 @@ $args = array(
 	'supports'           => array( 'title', 'thumbnail', 'editor', 'excerpt' ),
 );
 
-register_post_type( 'Events', $args );
+register_post_type( 'Events-CN', $args );
 
 /**
  * Remove related products output
  */
-
 remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
 
 add_filter( 'woocommerce_checkout_fields' , 'hide_billing_detail_checkout' );
