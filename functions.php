@@ -243,7 +243,7 @@ function mp_custom_woocommerce_orders_callback() {
 		$consumer_secret      = 'cs_e0b14fe4e8a6fb9138a3eba060c919fa866b0d9e';
 		$result               = '';
 		$customer_details_url = '/wp-json/wc/v2/customers/?email=';
-		$info_site_url        = 'https://transculturalgroup.com';
+		$info_site_url        = 'https://transculturalgroup.com/zh-hans';
 		$valid_order          = 0;
 		$current_site_url     = get_site_url();
 
