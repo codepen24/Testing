@@ -1,13 +1,8 @@
-// Mixins
-// Background Cover Mixin
-@mixin background-cover {
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
+@mixin heading-font {
+  font-family: 'Catamaran';
+  font-weight: 800 !important;
 }
 
-// Font Mixins
 @mixin body-font {
-  font-family: 'Source Sans Pro';
+  font-family: 'Lato';
 }
