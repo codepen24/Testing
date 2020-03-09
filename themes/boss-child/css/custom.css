@@ -1,0 +1,267 @@
+/*--------------------------------------------------------------
+This is your custom stylesheet.
+
+Add your own styles here to make theme updates easier.
+To override any styles from other stylesheets, simply copy them into here and edit away.
+
+Make sure to respect the media queries! Otherwise you may
+accidentally add desktop styles to the mobile layout.
+
+You're the boss, so have fun editing!
+
+--------------------------------------------------------------
+>>> TABLE OF CONTENTS:
+----------------------------------------------------------------
+1.0 - Global Styles
+2.0 - Responsive media queries (mobile styles)
+	2.1 - MAXIMUM width of 720 pixels (phones landscape)
+	2.2 - MAXIMUM width of 350 pixels (phones portrait)
+	2.3 - MINIMUM width of 721 pixels (tablets+)
+	2.4 - MINIMUM width of 1040 pixels (desktops and laptops)
+--------------------------------------------------------------*/
+/*--------------------------------------------------------------
+1.0 - Global Styles
+--------------------------------------------------------------*/
+
+
+
+/*
+.just_an_example {
+	color: black;
+}
+*/
+/*#members-list .bio {
+	display: table-cell;
+	vertical-align: middle;
+}
+.item-list li .action .action-wrap {
+	float: none;
+	display: table-cell;
+	vertical-align: middle;
+}*/
+
+.search-interests {
+	padding: 18px 70px 8px 70px;
+}
+.search-interests #interests {
+	float: left;
+	width: 73%;
+}
+.search-interests .select2-container {
+	width: 73% !important;
+}
+.search-interests .btn {
+	float: right;
+	width: 25% !important;
+}
+
+.field_537 .select2-container {
+	width: 100% !important;
+}
+
+/*** For BadgeOS Leaderboard - starts ***/
+.badgeos-leaderboard thead tr {
+	background: #00a6dc;
+	color: #fff;
+	font-size: 14px;
+}
+.badgeos-leaderboard thead tr th {
+	color: #fff !important;
+	padding: 20px 0 !important;
+}
+.badgeos-leaderboard tbody tr td {
+	vertical-align: middle;
+	/*padding: 20px 0 !important;*/
+}
+.badgeos-leaderboard tbody tr td:first-child {
+	text-align: center;
+}
+/*.badgeos-leaderboard .wdl_name {
+    width: 90%;
+    float: right;
+    padding-top: 3%;
+}*/
+.wdl-leaderboard-photo {
+	float: left;
+}
+.wdl-leaderboard-name {
+	float: left;
+	padding-left: 20px;
+	padding-top: 20px;
+}
+.badgeos-leaderboard .photo {
+	border-radius: 25px;
+}
+.badgeos-leaderboard .wdl_count {
+	/*padding: 2% 3%;
+    background: #00a6dc;
+    color: #fff;
+    border-radius: 50%;*/
+    width: 20px;
+    line-height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    margin-left: 40%;
+    color: #00a6dc;
+    color: #fff;
+    background: #00a6dc;
+}
+/*** For BadgeOS Leaderboard - ends ***/
+
+/*--------------------------------------------------------------
+2.0 - Responsive media queries (mobile styles)
+--------------------------------------------------------------*/
+/*--------------------------------------------------------------
+2.1 - MAXIMUM width of 720 pixels (phones landscape)
+--------------------------------------------------------------*/
+@media screen and (max-width: 720px) {
+
+
+	/*
+	.just_an_example {
+		color: black;
+	}
+	*/
+	#members-list .bio {
+		display: inline-block;
+	}
+	.item-list li .action .action-wrap {
+		display: inline-block;
+	}
+
+
+}/* don't delete this closing bracket */
+
+
+
+
+
+/*--------------------------------------------------------------
+2.2 - MAXIMUM width of 350 pixels (phones portrait)
+--------------------------------------------------------------*/
+@media screen and (max-width: 350px) {
+
+
+	/*
+	.just_an_example {
+		color: black;
+	}
+	*/
+	#members-list .bio {
+		display: inline-block;
+	}
+	.item-list li .action .action-wrap {
+		display: inline-block;
+	}
+
+	
+
+}/* don't delete this closing bracket */
+
+
+/*--------------------------------------------------------------
+2.3 - MINIMUM width of 420 pixels (WPDevLMS)
+--------------------------------------------------------------*/
+@media screen and (max-width: 480px) {
+
+	.search-interests {
+		padding: 18px 30px;
+	}
+	.search-interests #interests {
+		float: none;
+		width: 100%;
+	}
+	.search-interests .select2-container {
+		width: 100% !important;
+	}
+	.search-interests .btn {
+		float: none;
+		width: 100% !important;
+		margin-top: 5px;
+	}
+	/*.badgeos-leaderboard .wdl_name {
+	    width: 60%;
+	    float: right;
+	    padding-top: 9%;
+	}*/
+
+}/* don't delete this closing bracket */
+
+
+/*--------------------------------------------------------------
+2.3 - MINIMUM width of 721 pixels (tablets+)
+--------------------------------------------------------------*/
+@media screen and (min-width: 721px)  {
+
+
+	/*
+	.just_an_example {
+		color: black;
+	}
+	*/
+	/*#members-list .bio {
+		display: inline-block;
+	}
+	.item-list li .action .action-wrap {
+		display: inline-block;
+	}*/
+	/*#members-list .bio {
+		display: table-cell;
+		vertical-align: middle;
+	}*/
+	.item-list li .action .action-wrap {
+		float: none;
+		display: table-cell;
+		vertical-align: middle;
+		/*float: right;
+		vertical-align: middle;*/
+	}
+	/*.badgeos-leaderboard .wdl_name {
+	    width: 60%;
+	    float: right;
+	    padding-top: 8%;
+	}*/
+
+}/* don't delete this closing bracket */
+
+
+
+
+
+/*--------------------------------------------------------------
+2.4 - MINIMUM width of 1040 pixels (desktops and laptops)
+--------------------------------------------------------------*/
+@media screen and (min-width: 1040px)  {
+
+
+	/*
+	.just_an_example {
+		color: black;
+	}
+	*/
+	#members-list .bio {
+		/*display: table-cell;
+		vertical-align: middle;*/
+		float: left;
+		vertical-align: middle;
+		max-width: 60%;
+	}
+	.item-list li .action .action-wrap {
+		/*float: none;
+		display: table-cell;
+		vertical-align: middle;*/
+		float: right;
+		vertical-align: middle;
+	}
+	/*.badgeos-leaderboard .wdl_name {
+	    width: 75%;
+	    float: right;
+	    padding-top: 6%;
+	}*/
+}/* don't delete this closing bracket */ 
+
+@media screen and (max-width: 900px) {
+    #main .bb-slider-container .title {
+/*         font-size: 20px; */
+    }
+}
