@@ -1,0 +1,503 @@
+/*
+	Theme Name: TransCultural Group
+	Theme URI: https://transculturalgroup.com
+	Description: Using HTML5 Blank boilerplate 
+	Author: TCG IT Team
+	Version: 1.4.3
+	Tags: Blank, HTML5, CSS3
+
+	License: MIT
+	License URI: http://opensource.org/licenses/mit-license.php
+*/
+
+/*------------------------------------*\
+    MAIN
+\*------------------------------------*/
+
+/* global box-sizing */
+*,
+*:after,
+*:before {
+	-moz-box-sizing:border-box;
+	box-sizing:border-box;
+	-webkit-font-smoothing:antialiased;
+	font-smoothing:antialiased;
+	text-rendering:optimizeLegibility;
+}
+/* html element 62.5% font-size for REM use */
+html {
+	font-size:62.5%;
+}
+
+body {
+	font:300 14px/1.4 Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	color:#000;
+}
+/* clear */
+.clear:before,
+.clear:after {
+    content:' ';
+    display:table;
+}
+
+.clear:after {
+    clear:both;
+}
+.clear {
+    *zoom:1;
+}
+img {
+	max-width:100%;
+	vertical-align:bottom;
+}
+a {
+	color:#3b5075;
+	text-decoration:underline;
+	font-weight:500;
+}
+a:hover {
+	color:#3b5075;
+	text-decoration:none;
+}
+a:focus {
+	outline:0;
+}
+a:hover,
+a:active {
+	outline:0;
+}
+input:focus {
+	outline:0;
+	border:1px solid #04A4CC;
+}
+
+/*------------------------------------*\
+    STRUCTURE
+\*------------------------------------*/
+
+/* wrapper */
+.wrapper {
+	max-width:1280px;
+	width:95%;
+	margin:0 auto;
+	position:relative;
+}
+/* header */
+.header {
+
+}
+/* logo */
+.logo {
+
+}
+.logo-img {
+
+}
+/* nav */
+.nav {
+	
+}
+
+.elementor-nav-menu--main a {
+	font-weight:300;
+	text-decoration:none;
+}
+
+/* section */
+main {
+	width:80%;
+	margin: 0 auto;
+}
+
+.wptheme-container {
+	width:80%;
+	margin:0 auto;
+}
+
+.wptheme-content {
+	width:100%;
+	margin:0 auto;
+}
+.date, .author, .comments {
+	padding-right:1%;
+}
+
+
+/* sidebar */
+.sidebar {
+
+}
+/* footer */
+.footer {
+
+}
+
+/*------------------------------------*\
+    PAGES
+\*------------------------------------*/
+
+/* WooCommerce Product Single Page */
+.woocommerce .woocommerce-breadcrumb {
+	margin-top:5%;
+}
+.woocommerce div.product div.images img {
+    display: block;
+    width: 50%;
+    height: auto;
+    box-shadow: none;
+}
+.woocommerce div.product form.cart .button {
+	color: #fff;
+	background-color:#3b5075;
+	border-radius:30px;
+	font-family: Roboto, sans-serif;
+	font-weight:300;
+	padding: 10px 20px;
+}
+.woocommerce div.product form.cart .button:hover {
+	background-color: #fff;
+	border: 1px solid #3b5075;
+	color: #3b5075;
+	border-radius:30px;
+}
+.woocommerce ul.products li.product .button {
+	color: #fff;
+	background-color:#3b5075;
+	border-radius:30px;
+	font-family: Roboto, sans-serif;
+	font-weight:300;
+	padding: 10px 20px;
+}
+.woocommerce ul.products li.product .button:hover {
+	background-color: #fff;
+	border: 1px solid #3b5075;
+	color: #3b5075;
+	border-radius:30px;
+}
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button, .woocommerce button.button.alt, .woocommerce a.button {
+	color: #fff;
+	background-color:#3b5075;
+	border-radius:30px;
+	font-family: Roboto, sans-serif;
+	font-weight:300;
+	padding: 10px 20px;
+}
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button:hover, .woocommerce button.button.alt:hover, .woocommerce a.button:hover {
+	background-color: #fff;
+	border: 1px solid #3b5075;
+	color: #3b5075;
+	border-radius:30px;
+}
+
+
+
+
+
+
+/*------------------------------------*\
+    IMAGES
+\*------------------------------------*/
+
+
+
+/*------------------------------------*\
+	TYPOGRAPHY
+\*------------------------------------*/
+
+@font-face {
+	font-family:'Font-Name';
+	src:url('fonts/font-name.eot');
+	src:url('fonts/font-name.eot?#iefix') format('embedded-opentype'),
+		url('fonts/font-name.woff') format('woff'),
+		url('fonts/font-name.ttf') format('truetype'),
+		url('fonts/font-name.svg#font-name') format('svg');
+    font-weight:normal;
+    font-style:normal;
+}
+
+h1, h2, h3, h4, h5, h6 {font-weight:300; font-family:Roboto, sans-serif;}
+
+h1 {font-size:3.1em;}
+h2 {font-size:2.7em;}
+h3 {font-size:2.5em;}
+h4 {font-size:2em;}
+h5 {font-size:1.7em;}
+h6 {font-size:1.3em;}
+
+p {color:#000;font-weight:300;font-family:Roboto, sans-serif; font-size:14px;padding:.5em 0;line-height:1.6}
+
+.entry-title {
+	margin-top:5%;
+}
+
+.TCGbtn {
+   background: #3b5075;
+   color: #fff;
+	border-radius:30px; 
+	padding: 10px 20px;
+	font-size: 1em;
+	font-weight:300;
+	font-family: Roboto, sans-serif;
+}
+
+.TCGbtn:hover {
+    color: #3b5075;
+    background-color: #fff;
+    border: 1px solid #3b5075;
+}
+
+.cookie-notice-container span a.cn-link { margin-left: 1em; }
+
+.TCGCookiebtn {
+   background: #e5f0f1;
+   color: #3b5075;
+	border-radius:30px; 
+	padding: 10px 20px;
+	font-size: 1em;
+	font-weight:300;
+	font-family: Roboto, sans-serif;
+	text-decoration: none;
+}
+
+.TCGCookiebtn:hover {
+    color: #3b5075;
+    background-color: #fff;
+    border: 1px solid #e5f0f1;
+}
+ 
+.cookie-notice-container span:nth-of-type(2) a.TCGCookiebtn {
+   background: #fff;
+}
+
+.cookie-notice-container span:nth-of-type(2) a.TCGCookiebtn:hover {
+    background: #eaeaea;
+}
+
+.elementor-button-text {
+	color:#fff;
+	font-family: Roboto, sans-serif;
+	padding: 10px 15px;
+	background-color: #3b5075;
+	border: 1px solid #3b5075;
+	border-radius: 30px;
+}
+
+.elementor-button-link:hover, 
+.elementor-button:hover, 
+.elementor-size-sm:hover,
+.elementor-button-text:hover { 
+	color: #394e71; 
+	background-color: #FFF;
+	border-color: #394e71;
+}
+
+
+.elementor-widget-posts .elementor-post__read-more, a.elementor-post__read-more, .elementor-price-table__button {
+    font-size: 15px!important;
+    font-weight: 300!important;
+    color: #fff;
+    border: 1px solid #3b5075;
+    border-radius: 30px;
+    display: inline-block;
+    padding: 5px 15px;
+    background: #3b5075;
+    font-family: Roboto, sans-serif;
+}
+
+.elementor-widget-posts .elementor-post__read-more:hover {
+    background: #fff;
+    transition: all 0.3s ease 0s;
+    -webkit-transition: all 0.3s ease 0s;
+    -o-transition: all 0.3s ease 0s;
+    color: #3b5075!important;
+}
+
+
+.elementor-element.elementor-element-q27qqq4 .elementor-heading-title, .elementor-element.elementor-global-18092 .elementor-nav-menu--main .elementor-item, .elementor-button .elementor-button-text, .elementor-element.elementor-global-18092 .elementor-nav-menu--dropdown a.elementor-item-active, .infusion-field-label-container, .elementor-sub-item {
+	font-family: Roboto, sans-serif;
+}
+
+.anchor {
+	text-decoration: none;
+}
+
+/* Comment Form and Section */
+.comment-form-comment label {padding-right: 1%;}
+textarea {width:100%}
+.form-submit .submit {color:#fff;background-color:#3b5075;border-radius:30px;padding:10px 20px;font-family:Roboto, sans-serif;border: 1px solid #3b5075;}
+.form-submit .submit:hover {color:#3b5075;background-color:#fff;}
+
+/*------------------------------------*\
+    RESPONSIVE
+\*------------------------------------*/
+
+@media only screen and (min-width:320px) {
+
+}
+@media only screen and (min-width:480px) {
+
+}
+@media only screen and (min-width:768px) {
+
+}
+@media only screen and (min-width:1024px) {
+
+}
+@media only screen and (min-width:1140px) {
+
+}
+@media only screen and (min-width:1280px) {
+
+}
+@media only screen and (-webkit-min-device-pixel-ratio:1.5),
+	   only screen and (min-resolution:144dpi) {
+
+}
+
+/*------------------------------------*\
+    MISC
+\*------------------------------------*/
+
+::selection {
+	background:#04A4CC;
+	color:#FFF;
+	text-shadow:none;
+}
+::-webkit-selection {
+	background:#04A4CC;
+	color:#FFF;
+	text-shadow:none;
+}
+::-moz-selection {
+	background:#04A4CC;
+	color:#FFF;
+	text-shadow:none;
+}
+
+/*------------------------------------*\
+    WORDPRESS CORE
+\*------------------------------------*/
+
+.alignnone {
+	margin:5px 20px 20px 0;
+}
+.aligncenter,
+div.aligncenter {
+	display:block;
+	margin:5px auto 5px auto;
+}
+.alignright {
+	float:right;
+	margin:5px 0 20px 20px;
+}
+.alignleft {
+	float:left;
+	margin:5px 20px 20px 0;
+}
+a img.alignright {
+	float:right;
+	margin:5px 0 20px 20px;
+}
+a img.alignnone {
+	margin:5px 20px 20px 0;
+}
+a img.alignleft {
+	float:left;
+	margin:5px 20px 20px 0;
+}
+a img.aligncenter {
+	display:block;
+	margin-left:auto;
+	margin-right:auto;
+}
+.wp-caption {
+	background:#FFF;
+	border:1px solid #F0F0F0;
+	max-width:96%;
+	padding:5px 3px 10px;
+	text-align:center;
+}
+.wp-caption.alignnone {
+	margin:5px 20px 20px 0;
+}
+.wp-caption.alignleft {
+	margin:5px 20px 20px 0;
+}
+.wp-caption.alignright {
+	margin:5px 0 20px 20px;
+}
+.wp-caption img {
+	border:0 none;
+	height:auto;
+	margin:0;
+	max-width:98.5%;
+	padding:0;
+	width:auto;
+}
+.wp-caption .wp-caption-text,
+.gallery-caption {
+	font-size:11px;
+	line-height:17px;
+	margin:0;
+	padding:0 4px 5px;
+}
+.sticky {
+
+}
+.bypostauthor {
+
+}
+
+/*------------------------------------*\
+    PRINT
+\*------------------------------------*/
+
+@media print {
+	* {
+		background:transparent !important;
+		color:#000 !important;
+		box-shadow:none !important;
+		text-shadow:none !important;
+	}
+	a,
+	a:visited {
+		text-decoration:underline;
+	}
+	a[href]:after {
+		content:" (" attr(href) ")";
+	}
+	abbr[title]:after {
+		content:" (" attr(title) ")";
+	}
+	.ir a:after,
+	a[href^="javascript:"]:after,
+	a[href^="#"]:after {
+		content:"";
+	}
+	pre,blockquote {
+		border:1px solid #999;
+		page-break-inside:avoid;
+	}
+	thead {
+		display:table-header-group;
+	}
+	tr,img {
+		page-break-inside:avoid;
+	}
+	img {
+		max-width:100% !important;
+	}
+	@page {
+		margin:0.5cm;
+	}
+	p,
+	h2,
+	h3 {
+		orphans:3;
+		widows:3;
+	}
+	h2,
+	h3 {
+		page-break-after:avoid;
+	}
+}

@@ -1,0 +1,2 @@
+<?php
+ if ( ! defined( 'ABSPATH' ) ) { die(); } if ( class_exists( 'wpalm4is_k6v7joebh_4x' ) ) { return; } if ( ! wpalm4is_rvrqgfe5ns_::wpalm4is_rpi9r_24( array( 'unlimited', 'umbrella' ) ) ) { return; } $GLOBALS['memberium_modules']['umbrella-accounts]']['core'] = require_once __DIR__ . '/core.php'; if ( is_admin() ) { $GLOBALS['memberium_umbrella_accounts'] = require_once __DIR__ . '/admin.php'; }
