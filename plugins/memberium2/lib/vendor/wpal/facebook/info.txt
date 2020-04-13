@@ -1,5 +1,0 @@
-<?php
-/*
-Plugin Name: Facebook Features
-Author URI: 0000
-*/

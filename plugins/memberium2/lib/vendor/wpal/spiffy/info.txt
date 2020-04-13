@@ -1,5 +1,0 @@
-<?php
-/*
-Plugin Name: Spiffy Support
-Author URI: 0
-*/

@@ -1,2 +1,0 @@
-<?php
-if ( ! defined( 'ABSPATH' ) ) { die(); } final class wpalm4is_w0py65vj132a { const MARKETPLACE_FEED_URL = 'https://licenseserver.webpowerandlight.com/memberium-is/marketplace.php'; function __construct() { } function wpalm4is_nxghmv06wcf() { $vwpalm4is_g87myl0d = array( 'user-agent' => 'm4is', ); $vwpalm4is_n0wrho_2u = wp_remote_get( MARKETPLACE_FEED_URL, $vwpalm4is_g87myl0d ); $vwpalm4is_n0wrho_2u = json_decode($vwpalm4is_n0wrho_2u); } function wpalm4is_u9tundw1() { } }
