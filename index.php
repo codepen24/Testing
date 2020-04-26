@@ -9,7 +9,8 @@
 
 <?php 
     if(isset($_GET['name'])) {
-        echo'<pre>'.print_r($_POST, 1).'</pre>';
+        echo'<pre>'.print_r($_GET, 1).'</pre>';
+        print_r($_GET);
     }
 ?>
     <form action="" method="GET">
