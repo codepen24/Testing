@@ -9,6 +9,7 @@
 
     <form action="#" method="POST">
         <input type="password" name="pass" value="" />
+        <input type="submit" value="run" />
     </form>
 
 </body>
