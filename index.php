@@ -8,14 +8,14 @@
 <h1>The iframe element</h1>
 
 <?php 
-    if(isset($_POST['run'])) {
+    if(isset($_POST['runc'])) {
         // echo'<pre>'.print_r($_GET, 1).'</pre>';
         var_dump($_POST);
     }
 ?>
     <form action="" method="POST">
         <input type="password" name="pass" value="" />
-        <input type="submit" value="run" />
+        <input type="submit" name="runc" value="run" />
     </form>
 
 </body>
