@@ -1,8 +1,8 @@
 === Boss for LearnDash ===
 Contributors: buddyboss
 Requires at least: 3.8
-Tested up to: 4.9.6
-Stable tag: 1.3.1
+Tested up to: 5.2.2
+Stable tag: 1.3.5
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -23,6 +23,45 @@ Just activate the plugin, and all of your LearnDash content will match the Boss 
 5. Activate Boss for LearnDash from your Plugins page.
 
 == Changelog ==
+
+= 1.3.5 =
+* Fix - Conflict with 'LearnDash Course Grid' when using LearnDash 3.0+
+* Fix - Lesson topics pagination on course page
+* Fix - Topics count on courses index
+
+= 1.3.4 =
+* Fix - Check for course price type if free then add user to access list
+* Fix - Updated close icon of video preview
+* Fix - Course status fix on group course single page
+* Fix - Fix course currency type on course grid and course single
+* Fix - Removed selected class when restart quiz
+* Fix - Course navigation widget fixes
+* Fix - Removed course navigation widget from bp-learndash
+* Fix - Mixed content error in console fix for placehold.it images
+* Fix - Course teacher private message textbox  auto clean after message sent
+* Fix - Contact course teacher scrolling fix for mobile layout
+* Fix - Course grid leaves blank space
+* Fix - Lessons pagination on shortcodes page
+* Fix - Quiz radio button styling
+* Fix - Removed BB course progress widget.(Using LD Course Progress Bar widget instead of BB Course Progress widget)
+* Fix - Styled LD course progress bar widget
+* Fix - Currency symbol fix on course page
+* Fix - Lesson and topic placeholder image fix on activity page
+* Fix - Lesson pagination fix
+* Fix - Improved select box style 
+* Fix - Style back to lesson button on topics page
+* Fix - Elements styling on Course Activity page
+* Fix - Quiz tab appearing differently in sidebar
+* Fix - Compatibility issue with LeanDash 3.0 - Legacy Templates
+
+= 1.3.3 =
+* Fix - Pagination fixed on archive, widgets and shortcodes
+* Fix - PHP error logs fixed (undefined variables & array values)
+
+= 1.3.2 =
+* Fix - Internal server error on single course page
+* Fix - User edit admin screen templates fix for course progress
+* Dev - Added filter exclude_free_and_open_courses to remove open and free courses from My Courses
 
 = 1.3.1 =
 * Fix - Course Navigation widget style improvement in pagination
