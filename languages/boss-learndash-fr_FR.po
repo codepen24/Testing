@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Boss for LearnDash\n"
 "Report-Msgid-Bugs-To: https://www.buddyboss.com/contact/\n"
-"POT-Creation-Date: 2020-06-11 14:10:35+00:00\n"
+"POT-Creation-Date: 2019-07-18 12:55:56+00:00\n"
 "PO-Revision-Date: 2016-05-02 21:50-0400\n"
 "Last-Translator: jean-pierre michaud <nexialys@yahoo.com>\n"
 "Language-Team: jean-pierre michaud <nexialys@yahoo.com>\n"
@@ -52,24 +52,24 @@ msgstr ""
 "supérieur pour fonctionner. Vous devez <a href=\"http://www.learndash.com/"
 "\">mettre à jour LearnDash</a> en premier."
 
-#: includes/boss-learndash-functions.php:75
+#: includes/boss-learndash-functions.php:74
 msgid "%1$s%2$s - Purchase This Course"
 msgstr ""
 
-#: includes/boss-learndash-functions.php:112
-#: includes/boss-learndash-functions.php:122
+#: includes/boss-learndash-functions.php:111
+#: includes/boss-learndash-functions.php:121
 msgid "Complete Your Purchase"
 msgstr ""
 
-#: includes/boss-learndash-functions.php:148
+#: includes/boss-learndash-functions.php:147
 msgid "%1$s %2$s - Purchase This Course"
 msgstr ""
 
-#: includes/boss-learndash-functions.php:164
+#: includes/boss-learndash-functions.php:163
 msgid "Use Paypal"
 msgstr ""
 
-#: includes/boss-learndash-functions.php:293
+#: includes/boss-learndash-functions.php:279
 msgid "View public learner profile"
 msgstr "Voir le profil public de l'étudiant"
 
@@ -83,112 +83,112 @@ msgid ""
 "plugin %s"
 msgstr ""
 
-#: includes/main-class.php:104 includes/main-class.php:113
+#: includes/main-class.php:103 includes/main-class.php:110
 msgid "Cheatin&#8217; huh?"
 msgstr "On triche, hum?"
 
-#: includes/main-class.php:586
+#: includes/main-class.php:478
 #, fuzzy
 msgid "%1$d Required %2$s"
 msgid_plural "%1$d Required %3$s"
 msgstr[0] "%1$d requis"
 msgstr[1] "%1$d requis"
 
-#: includes/main-class.php:607
+#: includes/main-class.php:497
 msgid "Hide Price Tag"
 msgstr "Masquer l'étiquette de prix"
 
-#: includes/main-class.php:609
+#: includes/main-class.php:499
 msgid "Hide course price tag from all courses page."
 msgstr "Masquer les étiquettes de prix sur la page des cours."
 
-#: includes/main-class.php:624
+#: includes/main-class.php:514
 msgid "My %s"
 msgstr ""
 
-#: includes/main-class.php:624 templates/learndash/lesson.php:156
+#: includes/main-class.php:514 templates/learndash/lesson.php:156
 #: templates/learndash/profile.php:90
 msgid "Status"
 msgstr "Statut"
 
-#: includes/main-class.php:719
+#: includes/main-class.php:604
 msgid "People who have earned this:"
 msgstr "Les gens qui ont mérité ceci:"
 
-#: includes/main-class.php:790
+#: includes/main-class.php:671
 msgid "Show Details"
 msgstr "Voir les détails"
 
-#: includes/main-class.php:858 includes/main-class.php:883
-#: includes/main-class.php:914 templates/learndash/course_list_template.php:124
+#: includes/main-class.php:738 includes/main-class.php:763
+#: includes/main-class.php:794 templates/learndash/course_list_template.php:123
 #: templates/learndash/lesson_grid_template.php:51
 msgid "by "
 msgstr "par"
 
-#: includes/main-class.php:860
+#: includes/main-class.php:740
 msgid "in %s"
 msgstr "dans %s"
 
-#: includes/main-class.php:916
+#: includes/main-class.php:796
 msgid "in <a href=\"%1s\">%2s</a>"
 msgstr "dans <a href=\"%1s\">%2s</a>"
 
-#: includes/main-class.php:1100
+#: includes/main-class.php:970
 msgid "Video"
 msgstr "Vidéo"
 
-#: includes/main-class.php:1195
+#: includes/main-class.php:1065
 #, fuzzy
 msgid "Only display on LearnDash default pages"
 msgstr "Afficher uniquement que sur les pages LearnDash %s"
 
-#: includes/main-class.php:1220
+#: includes/main-class.php:1090
 msgid "LearnDash &rarr; %s/%s"
 msgstr "LearnDash &rarr; %s/%s"
 
-#: includes/main-class.php:1222
+#: includes/main-class.php:1092
 msgid "Display on LearnDash %s and %s pages"
 msgstr "Afficher sur les pages LearnDash %s et %s"
 
-#: includes/main-class.php:1231
+#: includes/main-class.php:1101
 msgid "Only display on LearnDash %s pages"
 msgstr "Afficher uniquement que sur les pages LearnDash %s"
 
-#: includes/main-class.php:1340
+#: includes/main-class.php:1210
 #: widgets/widget-boss-edu-course-participants.php:109
 msgid "See more"
 msgstr ""
 
-#: includes/main-class.php:1341
+#: includes/main-class.php:1211
 msgid "See less"
 msgstr ""
 
-#: includes/main-class.php:1342
+#: includes/main-class.php:1212
 #, fuzzy
 msgid "Your private message has been sent."
 msgstr "Entrez votre message privé."
 
-#: includes/main-class.php:1405
+#: includes/main-class.php:1274
 msgid "View all posts by %s"
 msgstr "Voir tous les messages de %s"
 
-#: includes/main-class.php:1469
+#: includes/main-class.php:1334
 msgid "Send Private Message"
 msgstr "Envoyer un message privé"
 
-#: includes/main-class.php:1474
+#: includes/main-class.php:1339
 msgid "Enter your private message."
 msgstr "Entrez votre message privé."
 
-#: includes/main-class.php:1481
+#: includes/main-class.php:1346
 msgid "Send Message"
 msgstr "Envoyer un message"
 
-#: includes/main-class.php:1495
+#: includes/main-class.php:1360
 msgid "Failed "
 msgstr ""
 
-#: includes/main-class.php:1501
+#: includes/main-class.php:1366
 msgid "Regarding "
 msgstr ""
 
@@ -225,16 +225,15 @@ msgid "See more..."
 msgstr ""
 
 #: templates/learndash/course_list_template.php:41
-#: templates/learndash/course_list_template.php:42
-#: templates/learndash/course_list_template.php:57
+#: templates/learndash/course_list_template.php:56
 msgid "Free"
 msgstr "Gratuit"
 
-#: templates/learndash/course_list_template.php:72
+#: templates/learndash/course_list_template.php:71
 msgid "Enrolled"
 msgstr ""
 
-#: templates/learndash/course_list_template.php:75
+#: templates/learndash/course_list_template.php:74
 msgid "Completed"
 msgstr "Terminé"
 
@@ -332,11 +331,11 @@ msgstr "Statut"
 msgid "Date"
 msgstr "Date"
 
-#: templates/learndash/quiz.php:44 templates/learndash/quiz.php:49
+#: templates/learndash/quiz.php:40 templates/learndash/quiz.php:45
 msgid "Please go back and complete the previous %s.<br>"
 msgstr "S'il vous plaît revenir en arrière et terminer la %s précédente.<br>"
 
-#: templates/learndash/quiz.php:73
+#: templates/learndash/quiz.php:69
 msgid "You have already taken this %s %d times and may not take it again."
 msgstr "Vous avez déjà rempli ce %s %d fois, vous ne pouvez plus le refaire."
 
@@ -540,7 +539,7 @@ msgctxt "Pending Certificate Status Label"
 msgid "Pending"
 msgstr ""
 
-#: templates/learndash/quiz.php:62
+#: templates/learndash/quiz.php:58
 #, fuzzy
 msgctxt "Quiz Materials Label"
 msgid "%s Materials"

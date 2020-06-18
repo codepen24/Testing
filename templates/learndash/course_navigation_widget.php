@@ -37,7 +37,7 @@ if ( empty( $_POST['paged'] ) ) {
 if ( $widget_instance['show_widget_wrapper'] != false ) {
 	?>
 	<div id="course_navigation" class="course_navigation" data-widget_instance="<?php echo $widget_data_json; ?>">
-		<div class="ld-course-navigation-widget-content-container">
+		<div class="ld-course-navigation-widget-content-contaiiner">
 		<?php		
 }
 
