@@ -33,7 +33,11 @@
  *
  * @package LearnDash\Quiz
  */
-if ( !empty( $lesson_progression_enabled ) && !is_quiz_accessable( null, $post ) ) {
+if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
+	return;
+}
+
+if ( ! empty( $lesson_progression_enabled ) && ! is_quiz_accessable( null, $quiz_post, true, $course_id ) ) {
 	if ( empty( $quiz_settings[ 'lesson' ] ) ) {
 		echo '<div id="learndash_complete_prev_lesson">';
 		echo '<i class="fa fa-info-circle"></i>';
