@@ -1,8 +1,8 @@
 === Boss for LearnDash ===
 Contributors: buddyboss
 Requires at least: 3.8
-Tested up to: 5.2.2
-Stable tag: 1.3.5
+Tested up to: 5.4.2
+Stable tag: 1.3.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -23,6 +23,17 @@ Just activate the plugin, and all of your LearnDash content will match the Boss 
 5. Activate Boss for LearnDash from your Plugins page.
 
 == Changelog ==
+
+= 1.3.6 =
+* Fix - Paypal inbuilt integration issue with Social Learner
+* Fix - Quiz icon and text getting cut in widget
+* Fix - BuddyBoss Course Participants widget is not working properly when a user is logged out
+* Fix - Fix issue related incomplete notice shows on Quiz however topic is completed
+* Fix - Fix hide price tag option not getting saved
+* Fix - Fix question numbering not showing
+* Fix - LearnDash Matrix Sort Quiz options are not scrolling when dragging to bottom
+* Fix - Fixed Price type warning
+
 
 = 1.3.5 =
 * Fix - Conflict with 'LearnDash Course Grid' when using LearnDash 3.0+
@@ -48,7 +59,7 @@ Just activate the plugin, and all of your LearnDash content will match the Boss 
 * Fix - Currency symbol fix on course page
 * Fix - Lesson and topic placeholder image fix on activity page
 * Fix - Lesson pagination fix
-* Fix - Improved select box style 
+* Fix - Improved select box style
 * Fix - Style back to lesson button on topics page
 * Fix - Elements styling on Course Activity page
 * Fix - Quiz tab appearing differently in sidebar

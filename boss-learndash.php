@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Boss for LearnDash
  * Plugin URI:  https://www.buddyboss.com/product/social-learner-learndash/
- * Description: WPDevLMS code inside moved by Fred
+ * Description: Makes LearnDash look beautiful with Boss theme
  * Author:      BuddyBoss
  * Author URI:  http://buddyboss.com
- * Version:     1.3.5
+ * Version:     1.3.6
  */
 // Exit if accessed directly
 if (!defined('ABSPATH'))
@@ -18,7 +18,7 @@ if (!defined('ABSPATH'))
  */
 // Codebase version
 if (!defined( 'BOSS_LEARNDASH_PLUGIN_VERSION' ) ) {
-  define( 'BOSS_LEARNDASH_PLUGIN_VERSION', '1.3.5' );
+  define( 'BOSS_LEARNDASH_PLUGIN_VERSION', '1.3.6' );
 }
 
 // Database version
@@ -148,7 +148,7 @@ function boss_education()
  * Allow automatic updates via the WordPress dashboard
  */
 require_once('includes/buddyboss-plugin-updater.php');
-//new buddyboss_updater_plugin( 'http://update.buddyboss.com/plugin', plugin_basename(__FILE__), 40);
+//new buddyboss_updater_plugin( 'https://update.buddyboss.com/plugin', plugin_basename(__FILE__), 40);
 
 
 /**
