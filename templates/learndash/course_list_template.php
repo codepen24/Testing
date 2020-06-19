@@ -37,8 +37,9 @@ if ( is_null( $currency ) ) {
 	$currency = 'USD';
 }
 
-$course_options 	= get_post_meta($post_id, "_sfwd-courses", true);
-$price 				= $course_options && isset($course_options['sfwd-courses_course_price']) ? $course_options['sfwd-courses_course_price'] : __( 'Free', 'boss-learndash' );
+$course_options = get_post_meta( $post_id, "_sfwd-courses", true );
+$price          = $course_options && isset( $course_options['sfwd-courses_course_price'] ) ? $course_options['sfwd-courses_course_price'] : __( 'Free', 'boss-learndash' );
+$price_type     = $course_options && isset($course_options['sfwd-courses_course_price_type']) ? $course_options['sfwd-courses_course_price_type'] : __( 'Free', 'boss-learndash' );
 
 // learndash_course_grid_short_description
 $cg_short_description 	= get_post_meta( $post_id, '_learndash_course_grid_short_description', true );
@@ -52,7 +53,7 @@ if ( is_plugin_active('learndash-course-grid/learndash_course_grid.php') && ! em
 $has_access   = sfwd_lms_has_access( $post_id, get_current_user_id() );
 $is_completed = learndash_course_completed( get_current_user_id(), $post_id );
 
-if( $price == '' || 'free' == $course_options['sfwd-courses_course_price_type'] ) {
+if( $price == '' || 'free' == $price_type ) {
 	$price .= __( 'Free', 'boss-learndash' );
 }
 
