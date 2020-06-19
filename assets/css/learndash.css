@@ -1796,11 +1796,7 @@ input[type="button"]:not(.button-small).wpProQuiz_button[value="Finish quiz"],
     margin-bottom: 15px;
 }
 .wpProQuiz_header {
-    display: none;
-}
-
-.wpProQuiz_listItem .wpProQuiz_header{
-    display: inline-block;
+    display: none !important;
 }
 .wpProQuiz_question_text p {
     font-size: 22px;
@@ -2783,17 +2779,8 @@ div.learndash_navigation_lesson_topics_list {
     margin: 0;
 }
 
-.learndash_navigation_lesson_topics_list .topic-completed span {
-    line-height: 1.5;
-    padding-left: 20px;
-}
-
 .learndash_navigation_lesson_topics_list .topic-notcompleted span {
     line-height: 1.5;
-}
-
-.ld-course-navigation-widget-content-container .learndash_navigation_lesson_topics_list .topic-notcompleted span {
-    background: transparent;
 }
 
 @media screen and (max-width: 600px) {
