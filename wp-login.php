@@ -210,8 +210,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 	?>
 	<div id="login">
-		<img style=" width: 100%; "src="/wp-content/uploads/2020/05/login_logo_top.png">
-		<h1 style=" display: none; "><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
@@ -287,8 +286,7 @@ function login_footer( $input_id = '' ) {
 	// Don't allow interim logins to navigate away from the page.
 	if ( ! $interim_login ) {
 		?>
-		<p id="backtoblog"><a href="<?php echo esc_url( esc_url( 'https://transculturalgroup.com/' ) ); ?>">
-
+		<p id="backtoblog"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">
 		<?php
 
 		/* translators: %s: Site title. */
@@ -303,7 +301,6 @@ function login_footer( $input_id = '' ) {
 
 	?>
 	</div><?php // End of <div id="login">. ?>
-	<img style=" display: block; margin: 0 auto 1em; "src="/wp-content/uploads/2020/05/login_logo_bottom.png">
 
 	<?php
 
