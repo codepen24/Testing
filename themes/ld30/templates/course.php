@@ -30,6 +30,10 @@
  * @package LearnDash\Course
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?>
 
 <div class="<?php echo esc_attr( learndash_the_wrapper_class() ); ?>">
@@ -38,16 +42,23 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 	global $course_pager_results;
 
 	/**
-	 * Action to add custom content before the topic
+	 * Fires before the topic.
 	 *
-	 * @since 3.0
+	 * @since 3.0.0
+	 *
+	 * @param int $post_id   Post ID.
+	 * @param int $course_id Course ID.
+	 * @param int $user_id   User ID.
 	 */
 	do_action( 'learndash-course-before', get_the_ID(), $course_id, $user_id );
 
 	/**
-	 * Action to add custom content before the course certificate link
+	 * Fires before the course certificate link.
 	 *
-	 * @since 3.0
+	 * @since 3.0.0
+	 *
+	 * @param int $course_id Course ID.
+	 * @param int $user_id   User ID.
 	 */
 	do_action( 'learndash-course-certificate-link-before', $course_id, $user_id );
 
@@ -78,9 +89,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 	endif;
 
 	/**
-	 * Action to add custom content after the course certificate link
+	 * Fires after the course certificate link.
 	 *
-	 * @since 3.0
+	 * @since 3.0.0
+	 *
+	 * @param int $course_id Course ID.
+	 * @param int $user_id   User ID.
 	 */
 	do_action( 'learndash-course-certificate-link-after', $course_id, $user_id );
 
@@ -104,10 +118,15 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 
 	<?php
 	/**
-	 * Filter to add custom content after the Course Status section of the Course template output.
+	 * Filters the content to be echoed after the course status section of the course template output.
 	 *
-	 * @since 2.3
+	 * @since 2.3.0
 	 * See https://bitbucket.org/snippets/learndash/7oe9K for example use of this filter.
+	 *
+	 * @param string $content             Custom content showed after the course status section. Can be empty.
+	 * @param string $course_status_index Course status index from the course status label
+	 * @param int    $course_id           Course ID.
+	 * @param int    $user_id             User ID.
 	 */
 	echo apply_filters( 'ld_after_course_status_template_container', '', learndash_course_status_idx( $course_status ), $course_id, $user_id );
 
@@ -141,9 +160,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 
 				<?php
 				/**
-				 * Action to add custom content before the course heading
+				 * Fires before the course heading.
 				 *
-				 * @since 3.0
+				 * @since 3.0.0
+				 *
+				 * @param int $course_id Course ID.
+				 * @param int $user_id   User ID.
 				 */
 				do_action( 'learndash-course-heading-before', $course_id, $user_id );
 				?>
@@ -151,8 +173,8 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 				<h2>
 				<?php
 				printf(
-					// translators: Course Content Label
-					esc_html_x( '%s Content', 'Course Content Label', 'learndash' ),
+					// translators: placeholder: Course.
+					esc_html_x( '%s Content', 'placeholder: Course', 'learndash' ),
 					LearnDash_Custom_Label::get_label( 'course' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Method escapes output
 				);
 				?>
@@ -160,9 +182,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 
 				<?php
 				/**
-				 * Action to add custom content after the course heading
+				 * Fires after the course heading.
 				 *
-				 * @since 3.0
+				 * @since 3.0.0
+				 *
+				 * @param int $course_id Course ID.
+				 * @param int $user_id   User ID.
 				 */
 				do_action( 'learndash-course-heading-after', $course_id, $user_id );
 				?>
@@ -171,9 +196,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 
 					<?php
 					/**
-					 * Action to add custom content after the course content progress bar
+					 * Fires before the course expand.
 					 *
-					 * @since 3.0
+					 * @since 3.0.0
+					 *
+					 * @param int $course_id Course ID.
+					 * @param int $user_id   User ID.
 					 */
 					do_action( 'learndash-course-expand-before', $course_id, $user_id );
 					?>
@@ -188,10 +216,17 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 						</div> <!--/.ld-expand-button-->
 						<?php
 						// TODO @37designs Need to test this
+						/**
+						 * Filters whether to expand all course steps by default. Default is false.
+						 *
+						 * @param boolean $expand_all Whether to expand all course steps.
+						 * @param int     $course_id  Course ID.
+						 * @param string  $context    The context where course is expanded.
+						 */
 						if ( apply_filters( 'learndash_course_steps_expand_all', false, $course_id, 'course_lessons_listing_main' ) ) {
 							?>
 							<script>
-								jQuery(document).ready(function(){
+								jQuery( function(){
 									setTimeout(function(){
 										jQuery("<?php echo esc_attr( '#ld-expand-button-' . $course_id ); ?>").trigger('click');
 									}, 1000);
@@ -202,9 +237,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 					endif;
 
 					/**
-					 * Action to add custom content after the course content expand button
+					 * Fires after the course content expand button.
 					 *
-					 * @since 3.0
+					 * @since 3.0.0
+					 *
+					 * @param int $course_id Course ID.
+					 * @param int $user_id   User ID.
 					 */
 					do_action( 'learndash-course-expand-after', $course_id, $user_id );
 					?>
@@ -214,9 +252,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 
 			<?php
 			/**
-			 * Action to add custom content before the course content listing
+			 * Fires before the course content listing
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-course-content-list-before', $course_id, $user_id );
 
@@ -243,9 +284,12 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 			);
 
 			/**
-			 * Action to add custom content before the course content listing
+			 * Fires before the course content listing.
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-course-content-list-after', $course_id, $user_id );
 			?>
@@ -256,9 +300,13 @@ $has_lesson_quizzes = learndash_30_has_lesson_quizzes( $course_id, $lessons ); ?
 	endif;
 
 	/**
-	 * Action to add custom content before the topic
+	 * Fires before the topic.
 	 *
-	 * @since 3.0
+	 * @since 3.0.0
+	 *
+	 * @param int $post_id   Post ID.
+	 * @param int $course_id Course ID.
+	 * @param int $user_id   User ID.
 	 */
 	do_action( 'learndash-course-after', get_the_ID(), $course_id, $user_id );
 	learndash_load_login_modal_html();

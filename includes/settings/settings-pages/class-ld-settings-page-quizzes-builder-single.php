@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDash_Settings_Page_Quiz_Builder_Single' ) ) ) {
 	/**
 	 * Class to create the settings page.
@@ -87,8 +91,12 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 		 */
 		public function get_admin_page_form( $start = true ) {
 			if ( true === $start ) {
+
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
 				return apply_filters( 'learndash_admin_page_form', '<form id="learndash-settings-page-form" method="post">', $start );
 			} else {
+
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
 				return apply_filters( 'learndash_admin_page_form', '</form>', $start );
 			}
 		}
@@ -105,7 +113,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 					if ( ( ! isset( $_GET['quiz_id'] ) ) || ( empty( $_GET['quiz_id'] ) ) ) {
 						// ...then redirect back to the courses listin screen.
 						$quizzes_list_url = add_query_arg( 'post_type', 'sfwd-quiz', admin_url( 'edit.php' ) );
-						wp_safe_redirect( $quizzes_list_url );
+						learndash_safe_redirect( $quizzes_list_url );
 					} else {
 						$this->cb = Learndash_Admin_Metabox_Quiz_Builder::add_instance( 'Learndash_Admin_Metabox_Quiz_Builder' );
 						$this->save_cb_metabox();
@@ -160,6 +168,8 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 
 			if ( ( 'edit.php' === $pagenow ) && ( learndash_get_post_type_slug( 'quiz' ) === $typenow ) && ( is_a( $quiz_post, 'WP_Post' ) ) ) {
 				if ( ( 'yes' === LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Quizzes_Builder', 'enabled' ) ) && ( ! isset( $row_actions['ld-quiz-builder'] ) ) ) {
+
+					/** This filter is documented in includes/admin/classes-posts-listings/class-learndash-admin-quizzes-listing.php */
 					if ( apply_filters( 'learndash_show_quiz_builder_row_actions', true, $quiz_post ) === true ) {
 						$quiz_label = sprintf(
 							// translators: placeholder: Quiz.

@@ -8,6 +8,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDash_Settings_Page_Addons' ) ) ) {
 	/**
 	 * Class to create the settings page.
@@ -82,6 +86,8 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 		 * @since 2.5.5
 		 */
 		public function get_admin_page_title() {
+
+			/** This filter is documented in includes/settings/class-ld-settings-pages.php */
 			return apply_filters( 'learndash_admin_page_title', '<h1>' . $this->settings_page_title . '</h1>' );
 		}
 
@@ -96,7 +102,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 			if ( isset( $license_status['value'] ) ) {
 				$license_status = $license_status['value'];
 				if ( ! empty( $license_status ) && ( 'false' !== $license_status ) && ( 'not_found' !== $license_status ) ) {
-					require_once LEARNDASH_LMS_PLUGIN_DIR . '/includes/admin/class-learndash-admin-addons-list-table.php';
+					require_once LEARNDASH_LMS_PLUGIN_DIR . 'includes/admin/class-learndash-admin-addons-list-table.php';
 
 					wp_enqueue_style( 'plugin-install' );
 					wp_enqueue_script( 'plugin-install' );
@@ -109,8 +115,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 			}
 
 			$overview_url = add_query_arg( 'page', 'learndash_lms_overview', admin_url( 'admin.php' ) );
-			wp_safe_redirect( $overview_url );
-			exit();
+			learndash_safe_redirect( $overview_url );
 		}
 
 		/**
@@ -147,14 +152,26 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 
 				<?php settings_errors(); ?>
 
-				<?php do_action( 'learndash_settings_page_before_title', $this->settings_screen_id ); ?>
+				<?php
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
+				do_action( 'learndash_settings_page_before_title', $this->settings_screen_id );
+				?>
 				<?php echo $this->get_admin_page_title(); ?>
-				<?php do_action( 'learndash_settings_page_after_title', $this->settings_screen_id ); ?>
+				<?php
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
+				do_action( 'learndash_settings_page_after_title', $this->settings_screen_id );
+				?>
 
-				<?php do_action( 'learndash_settings_page_before_form', $this->settings_screen_id ); ?>
+				<?php
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
+				do_action( 'learndash_settings_page_before_form', $this->settings_screen_id );
+				?>
 				<div id="plugin-filter-xxx">
 				<?php echo $this->get_admin_page_form( true ); ?>
-				<?php do_action( 'learndash_settings_page_inside_form_top', $this->settings_screen_id ); ?>
+				<?php
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
+				do_action( 'learndash_settings_page_inside_form_top', $this->settings_screen_id );
+				?>
 					<?php
 						$wp_list_table = new Learndash_Admin_Addons_List_Table();
 						$wp_list_table->prepare_items();
@@ -162,10 +179,16 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 						$wp_list_table->views();
 						$wp_list_table->display();
 					?>
-				<?php do_action( 'learndash_settings_page_inside_form_bottom', $this->settings_screen_id ); ?>
+				<?php
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
+				do_action( 'learndash_settings_page_inside_form_bottom', $this->settings_screen_id );
+				?>
 				<?php echo $this->get_admin_page_form( false ); ?>
 				</div>
-				<?php do_action( 'learndash_settings_page_after_form', $this->settings_screen_id ); ?>
+				<?php
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
+				do_action( 'learndash_settings_page_after_form', $this->settings_screen_id );
+				?>
 			</div>
 			<?php
 			/**
@@ -192,7 +215,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 				return;
 			}
 
-			$addon_updater             = new LearnDash_Addon_Updater();
+			$addon_updater             = LearnDash_Addon_Updater::get_instance();
 			$plugin_readme_information = $addon_updater->get_plugin_information( esc_attr( $_REQUEST['plugin'] ) );
 
 			if ( empty( $plugin_readme_information ) ) {
@@ -364,7 +387,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 					<?php } if ( ! empty( $api->tested ) ) { ?>
 						<li><strong><?php _e( 'Compatible up to:', 'default' ); ?></strong> <?php echo $api->tested; ?></li>
 					<?php } if ( isset( $api->active_installs ) ) { ?>
-						<li><strong><?php _e( 'Active Installations:', 'default' ); ?></strong> 
+						<li><strong><?php _e( 'Active Installations:', 'default' ); ?></strong>
 												<?php
 												if ( $api->active_installs >= 1000000 ) {
 													_ex( '1+ Million', 'Active plugin installations', 'default' );
@@ -376,7 +399,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 							?>
 							</li>
 					<?php } if ( ! empty( $api->slug ) && empty( $api->external ) ) { ?>
-						<li><a target="_blank" href="<?php echo __( 'https://wordpress.org/plugins/', 'default' ) . $api->slug; ?>/"><?php _e( 'WordPress.org Plugin Page &#187;', 'default' ); ?></a></li>
+						<li><a target="_blank" href="<?php echo esc_url( __( 'https://wordpress.org/plugins/', 'default' ) ) . $api->slug; ?>/"><?php _e( 'WordPress.org Plugin Page &#187;', 'default' ); ?></a></li>
 					<?php } if ( ! empty( $api->homepage ) ) { ?>
 						<li><a target="_blank" href="<?php echo esc_url( $api->homepage ); ?>"><?php _e( 'Plugin Homepage &#187;', 'default' ); ?></a></li>
 					<?php } if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) { ?>

@@ -61,6 +61,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 * @return none The output is echoed.
 		 */
 		public function render_block( $attributes = array() ) {
+			$attributes = $this->preprocess_block_attributes( $attributes );
 
 			$attributes_meta = array();
 			if ( isset( $attributes['meta'] ) ) {
@@ -69,7 +70,6 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 			}
 
 			if ( is_user_logged_in() ) {
-				error_log('attributes<pre>'. print_r($attributes, true) .'</pre>');
 
 				if ( ( isset( $attributes['example_show'] ) ) && ( ! empty( $attributes['example_show'] ) ) ) {
 					$attributes['preview_course_id'] = $this->get_example_post_id( learndash_get_post_type_slug( 'course' ) );
@@ -134,6 +134,9 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 
 				$shortcode_params_str = '[' . $this->shortcode_slug . ' ' . $shortcode_params_str . ']';
 				$shortcode_out = do_shortcode( $shortcode_params_str );
+				if ( empty( $shortcode_out ) ) {
+					$shortcode_out = '[' . $this->shortcode_slug . '] placholder output.';
+				}
 
 				return $this->render_block_wrap( $shortcode_out );
 			}

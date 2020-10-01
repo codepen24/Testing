@@ -6,6 +6,10 @@
  * @subpackage Admin
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'Learndash_Admin_User_Profile_Edit' ) ) {
 	/**
 	 * Class for LearnDash WP User Profile Edit.
@@ -173,7 +177,12 @@ if ( ! class_exists( 'Learndash_Admin_User_Profile_Edit' ) ) {
 				'quiz_orderby' => 'taken',
 				'quiz_order' => 'DESC',
 			);
-
+			/**
+			 * Filters profile course info attributes.
+			 *
+			 * @param array   $attributes An array of course info attributes.
+			 * @param WP_User $user       WP_User object to be checked.
+			 */
 			$atts = apply_filters( 'learndash_profile_course_info_atts', $atts, $user );
 
 			echo SFWD_LMS::get_course_info( $user_id, $atts );
@@ -377,37 +386,20 @@ if ( ! class_exists( 'Learndash_Admin_User_Profile_Edit' ) ) {
 			// First check is the user viewing the screen is admin...
 			if ( current_user_can( 'edit_users' ) ) {
 				// Then is the user profile being viewed is not admin.
-				if ( learndash_is_admin_user( $user->ID ) ) {
-
-					/**
-					 * See example if 'learndash_override_course_auto_enroll' filter
-					 * https://bitbucket.org/snippets/learndash/kon6y
-					 *
-					 * @since 2.3
-					 */
-					$course_autoenroll_admin = LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Section_General_Admin_User', 'courses_autoenroll_admin_users' );
-					if ( 'yes' === $course_autoenroll_admin ) {
-						$course_autoenroll_admin = true;
-					} else {
-						$course_autoenroll_admin = false;
-					}
-					$course_autoenroll_admin_filtered = apply_filters( 'learndash_override_course_auto_enroll', $course_autoenroll_admin, $user->ID );
-
-					if ( $course_autoenroll_admin_filtered ) {
-						?>
-						<h3>
-						<?php
-						printf(
-							// translators: placeholder: Courses.
-							esc_html_x( 'User Enrolled %s', 'User Enrolled Courses', 'learndash' ),
-							LearnDash_Custom_Label::get_label( 'courses' )
-						);
-						?>
-						</h3>
-						<p><?php esc_html_e( 'Administrators are automatically enrolled in all Courses.', 'learndash' ); ?></p>
-						<?php
-						return;
-					}
+				if ( learndash_can_user_autoenroll_courses( $user->ID ) ) {
+					?>
+					<h3>
+					<?php
+					printf(
+						// translators: placeholder: Courses.
+						esc_html_x( 'User Enrolled %s', 'User Enrolled Courses', 'learndash' ),
+						LearnDash_Custom_Label::get_label( 'courses' )
+					);
+					?>
+					</h3>
+					<p><?php esc_html_e( 'User is automatically enrolled in all Courses.', 'learndash' ); ?></p>
+					<?php
+					return;
 				}
 
 				$ld_binary_selector_user_courses = new Learndash_Binary_Selector_User_Courses(
@@ -513,7 +505,7 @@ if ( ! class_exists( 'Learndash_Admin_User_Profile_Edit' ) ) {
 								<tr>
 									<td class="col=title">
 										<?php if ( ! empty( $course_edit_permalink ) ) { ?>
-											<a href="<?php $course_edit_permalink ?>">
+											<a href="<?php echo esc_url( $course_edit_permalink ); ?>">
 										<?php } ?>
 										<?php echo get_the_title( $course->ID ) ?>
 										<?php if ( ! empty( $course_edit_permalink ) ) { ?>
@@ -524,12 +516,12 @@ if ( ! class_exists( 'Learndash_Admin_User_Profile_Edit' ) ) {
 										<div class="row-actions">
 											<?php if ( ! empty( $course_edit_permalink ) ) { ?>
 												<span class="edit">
-													<a href="<?php $course_edit_permalink ?>" aria-label="Edit">edit</a>
+													<a href="<?php esc_url( $course_edit_permalink ); ?>" aria-label="Edit">edit</a>
 													|
 												</span>
 											<?php } ?>
 											<span class="view">
-												<a href="<?php echo get_permalink( $course->ID ); ?>" aria-label="View"><?php esc_html_e('view', 'learndash' ) ?></a>
+												<a href="<?php echo esc_url( get_permalink( $course->ID ) ); ?>" aria-label="View"><?php esc_html_e('view', 'learndash' ) ?></a>
 												|
 											</span>
 										</div>
@@ -589,9 +581,10 @@ if ( ! class_exists( 'Learndash_Admin_User_Profile_Edit' ) ) {
 													$output_str .= '<br />';
 												}
 												$output_str .= sprintf(
-													// translators: placeholder: Started Group Date.
-													esc_html_x( 'Started: %s (Group Access)', 'placeholder: Started Group date','learndash' ),
-													learndash_adjust_date_time_display( $since )
+													// translators: placeholder: Started Group Date, Group.
+													esc_html_x( 'Started: %1$s (%2$s Access)', 'placeholder: Started Group date, Group','learndash' ),
+													learndash_adjust_date_time_display( $since ),
+													LearnDash_Custom_Label::get_label( 'group' )
 												);
 											}
 										}

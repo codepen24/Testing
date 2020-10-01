@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 //require_once LEARNDASH_LMS_PLUGIN_DIR . 'includes/settings/class-ld-settings-section-fields.php';
 
 if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
@@ -386,6 +390,13 @@ if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
 			global $learndash_metaboxes;
 
 			if ( $settings_screen_id === $this->settings_screen_id ) {
+				/**
+				 * Filters whether to show settings section meta box.
+				 *
+				 * @param boolean $show_metabox       Whether to show settings metabox.
+				 * @param string  $settings_key       Settings key used as option name while saving settings.
+				 * @param string  $settings_screen_id Settings screen ID.
+				 */
 				if ( apply_filters( 'learndash_show_metabox', true, $this->settings_metabox_key, $this->settings_screen_id ) ) {
 
 					if ( ! isset( $learndash_metaboxes[ $this->settings_screen_id ] ) ) {
@@ -401,8 +412,35 @@ if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
 						$this->metabox_context,
 						$this->metabox_priority
 					);
+
+					add_filter( 'postbox_classes_' . $this->settings_screen_id . '_' . $this->settings_metabox_key, array( $this, 'add_meta_box_classes' ), 30, 1 );
 				}
 			}
+		}
+
+		/**
+		 * Add custom classes to postbox wrapper.
+		 *
+		 * @since 3.2.3
+		 *
+		 * @param array $classes Array of classes for postbox.
+		 *
+		 * @return array $classes.
+		 */
+		public function add_meta_box_classes( $classes ) {
+			if ( ! in_array( 'ld_settings_postbox', $classes ) ) {
+				$classes[] = 'ld_settings_postbox';
+			}
+
+			if ( ! in_array( 'ld_settings_postbox_' . $this->settings_screen_id, $classes ) ) {
+				$classes[] = 'ld_settings_postbox_' . $this->settings_screen_id;
+			}
+
+			if ( ! in_array( 'ld_settings_postbox_' . $this->settings_screen_id . '_' . $this->settings_metabox_key, $classes ) ) {
+				$classes[] = 'ld_settings_postbox_' . $this->settings_screen_id . '_' . $this->settings_metabox_key;
+			}
+
+			return $classes;
 		}
 
 		/**
@@ -502,7 +540,24 @@ if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
 				}
 			}
 
+			/**
+			 * Filters settings meta box save fields.
+			 *
+			 * @param array  $settings_field_updates An array of setting fields data.
+			 * @param string $settings_key          Settings key used as option name while saving settings.
+			 * @param string $settings_screen_id    Settings screen ID.
+			 */
 			$settings_field_updates = apply_filters( 'learndash_metabox_save_fields', $settings_field_updates, $this->settings_metabox_key, $this->settings_screen_id );
+			/**
+			 * Filters settings meta box save fields.
+			 *
+			 * The dynamic portion of the hook `$this->settings_metabox_key` refers to the settings key also
+			 * used as option name while saving settings in options table.
+			 *
+			 * @param array  $settings_field_updates An array of setting fields data.
+			 * @param string $settings_key          Settings key used as option name while saving settings.
+			 * @param string $settings_screen_id    Settings screen ID.
+			 */
 			$settings_field_updates = apply_filters( 'learndash_metabox_save_fields_' . $this->settings_metabox_key, $settings_field_updates, $this->settings_metabox_key, $this->settings_screen_id );
 
 			return $settings_field_updates;
@@ -519,20 +574,52 @@ if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
 				if ( ( isset( $metabox->settings_fields_callback ) ) && ( ! empty( $metabox->settings_fields_callback ) ) && ( is_callable( $metabox->settings_fields_callback ) ) ) {
 					call_user_func( $metabox->settings_fields_callback, $this->settings_metabox_key );
 				} else {
+					/**
+					 * Fires before the metabox description.
+					 *
+					 * @param string $settings_key Settings key used as option name while saving settings.
+					 */
 					do_action( 'learndash_metabox_description_before', $metabox->settings_metabox_key );
 					$this->show_settings_section_description();
+
+					/**
+					 * Fires after the metabox description.
+					 *
+					 * @param string $settings_key Settings key used as option name while saving settings.
+					 */
 					do_action( 'learndash_metabox_description_after', $metabox->settings_metabox_key );
 
 					if ( learndash_get_post_type_slug( 'quiz' ) === $this->settings_screen_id ) {
 						echo '<div class="wrap wpProQuiz_quizEdit">';
 					}
 
+					/**
+					 * Fires before metabox options div.
+					 *
+					 * @param string $settings_key Settings key used as option name while saving settings.
+					 */
 					do_action( 'learndash_metabox_options_div_before', $metabox->settings_metabox_key );
 					echo '<div class="sfwd sfwd_options ' . esc_attr( $metabox->settings_metabox_key ) . '">';
+
+					/**
+					 * Fires inside the meta box options div at the top.
+					 *
+					 * @param string $settings_key Settings key used as option name while saving settings.
+					 */
 					do_action( 'learndash_metabox_options_div_inside_top', $metabox->settings_metabox_key );
 					$this->show_settings_metabox_fields( $metabox );
+
+					/**
+					 * Fires inside the meta box options div at the bottom.
+					 */
 					do_action( 'learndash_metabox_options_div_inside_bottom', $metabox->settings_metabox_key );
 					echo '</div>';
+
+					/**
+					 * Fires after the meta box options div.
+					 *
+					 * @param string $settings_key Settings key used as option name while saving settings.
+					 */
 					do_action( 'learndash_metabox_options_div_after', $metabox->settings_metabox_key );
 
 					if ( learndash_get_post_type_slug( 'quiz' ) === $this->settings_screen_id ) {
@@ -661,11 +748,26 @@ if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
 								$data['prerequisiteQuizList'] = array();
 							}
 
-							if ( isset( $data['_' . learndash_get_post_type_slug( 'quiz' ) ] ) ) {
-								$quiz_postmeta = $data['_' . learndash_get_post_type_slug( 'quiz' ) ];
-								foreach( $this->settings_fields_map as $_key => $_val ) {
-									if ( isset( $data['_' . learndash_get_post_type_slug( 'quiz' ) ][ $_key ] ) ) {
-										$this->setting_option_values[ $_key ] = $data['_' . learndash_get_post_type_slug( 'quiz' ) ][ $_key ];
+							if ( isset( $data[ '_' . learndash_get_post_type_slug( 'quiz' ) ] ) ) {
+								$quiz_postmeta = $data[ '_' . learndash_get_post_type_slug( 'quiz' ) ];
+								if ( ( ! isset( $_GET['templateLoadReplaceCourse'] ) ) || ( 'on' !== $_GET['templateLoadReplaceCourse'] ) ) {
+									if ( isset( $quiz_postmeta['course'] ) ) {
+										$quiz_postmeta['course'] = absint( learndash_get_setting( $post->ID, 'course' ) );
+									}
+									if ( isset( $quiz_postmeta['lesson'] ) ) {
+										$quiz_postmeta['lesson'] = absint( learndash_get_setting( $post->ID, 'lesson' ) );
+									}
+								}
+								if ( ( ! isset( $_GET['templateLoadReplaceQuestions'] ) ) || ( 'on' !== $_GET['templateLoadReplaceQuestions'] ) ) {
+									if ( isset( $quiz_postmeta['quiz_pro'] ) ) {
+										$quiz_postmeta['quiz_pro'] = absint( learndash_get_setting( $post->ID, 'quiz_pro' ) );
+									}
+								}
+								$data[ '_' . learndash_get_post_type_slug( 'quiz' ) ] = $quiz_postmeta;
+								
+								foreach ( $this->settings_fields_map as $_internal => $_external ) {
+									if ( isset( $data[ '_' . learndash_get_post_type_slug( 'quiz' ) ][ $_external ] ) ) {
+										$this->setting_option_values[ $_internal ] = $data[ '_' . learndash_get_post_type_slug( 'quiz' ) ][ $_external ];
 									}
 								}
 							} else {
@@ -699,6 +801,20 @@ if ( ! class_exists( 'LearnDash_Settings_Metabox' ) ) {
 
 			return $legacy_fields;
 		}
+
+		/**
+		 * Generate the JSON data attribute for select2 AJAX.
+		 *
+		 * @since 3.2.3.
+		 * @param array $field_settings Field Settings array.
+		 */
+		protected function build_settings_select2_lib_ajax_fetch_json( $field_settings = array() ) {
+			$settings_element_json   = wp_json_encode( $field_settings['settings_element'], JSON_FORCE_OBJECT );
+			$field_settings['nonce'] = wp_create_nonce( $settings_element_json );
+
+			return htmlspecialchars( wp_json_encode( $field_settings, JSON_FORCE_OBJECT ) );
+		}
+
 		// End of functions.
 	}
 }

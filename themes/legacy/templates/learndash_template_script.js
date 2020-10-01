@@ -50,10 +50,10 @@ String.prototype.toHHMMSS = function() {
     return time;
 }
 
-jQuery(document).ready(function() {
-	
+jQuery( function() {
+
 	if ( jQuery( '.learndash_timer' ).length ) {
-		jQuery('.learndash_timer').each(function (idx, item) {	
+		jQuery('.learndash_timer').each(function (idx, item) {
 			var timer_el = jQuery(item);
 
 			var timer_seconds = timer_el.data('timer-seconds');
@@ -65,7 +65,7 @@ jQuery(document).ready(function() {
 				if ( ( typeof timer_seconds !== 'undefined' ) && ( typeof timer_button_el !== 'undefined' ) ) {
 
 					timer_button_el.attr('disabled', true);
-				
+
 					timer_seconds = parseInt( timer_seconds );
 
 					var cookie_key 		= timer_el.attr('data-cookie-key');
@@ -82,27 +82,26 @@ jQuery(document).ready(function() {
 						timer_seconds = parseInt( cookie_timer_seconds );
 					}
 					//jQuery.removeCookie( cookie_name );
-					
+
 					if ( timer_seconds >= 1 ) {
 						var learndash_timer_var = setInterval( function() {
 							timer_seconds = timer_seconds - 1;
-						
+
 							var time_display = timer_seconds.toString().toHHMMSS();
 							timer_el.html(time_display);
 							if ( timer_seconds <= 0 ) {
-								
 								clearInterval( learndash_timer_var );
 								timer_button_el.attr('disabled', false);
 								timer_el.html('');
+								timer_el.hide();
 								jQuery.cookie(cookie_name, 0);
-								//jQuery.removeCookie( cookie_name );
-								
+
 								timer_button_el.trigger('learndash-time-finished');
 							}
 							// Store the timer state (value) into a cookie. This is done if the page reloads the student can resume
 							// the time instead of restarting.
 							jQuery.cookie(cookie_name, timer_seconds);
-						},1000);	
+						},1000);
 					} else {
 						timer_button_el.attr('disabled', false);
 						timer_el.html('');
@@ -116,7 +115,7 @@ jQuery(document).ready(function() {
 });
 
 
-jQuery(document).ready(function(){
+jQuery( function(){
 	if (typeof sfwd_data !== 'undefined') {
 		if ( typeof sfwd_data.json !== 'undefined' ) {
 			sfwd_data = sfwd_data.json.replace(/&quot;/g, '"');
@@ -129,13 +128,13 @@ jQuery(document).ready(function(){
 
 	function learndash_show_user_statistic( e ) {
 		e.preventDefault();
-		
+
 		var refId 				= 	jQuery(this).data('ref_id');
 		var quizId 				= 	jQuery(this).data('quiz_id');
 		var userId 				= 	jQuery(this).data('user_id');
 		var statistic_nonce 	= 	jQuery(this).data('statistic_nonce');
 		var post_data = {
-			'action': 'wp_pro_quiz_admin_ajax',
+			'action': 'wp_pro_quiz_admin_ajax_statistic_load_user',
 			'func': 'statisticLoadUser',
 			'data': {
 				'quizId': quizId,
@@ -145,7 +144,7 @@ jQuery(document).ready(function(){
             	'avg': 0
 			}
 		}
-		
+
 		jQuery('#wpProQuiz_user_overlay, #wpProQuiz_loadUserData').show();
 		var content = jQuery('#wpProQuiz_user_content').hide();
 
@@ -163,22 +162,22 @@ jQuery(document).ready(function(){
 					content.html(reply_data.html);
 					jQuery('a.wpProQuiz_update', content).remove();
 					jQuery('a#wpProQuiz_resetUserStatistic', content).remove();
-										
+
 					jQuery('body').trigger('learndash-statistics-contentchanged');
 
 					jQuery('#wpProQuiz_user_content').show();
 
 					jQuery('#wpProQuiz_loadUserData').hide();
-				
+
 					content.find('.statistic_data').click(function() {
 						jQuery(this).parents('tr').next().toggle('fast');
-			
+
 						return false;
 					});
 				}
 			}
 		});
-				
+
 		jQuery('#wpProQuiz_overlay_close').click(function() {
 			jQuery('#wpProQuiz_user_overlay').hide();
 		});

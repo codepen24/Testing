@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'LearnDash_Settings_Section_Data_Reset' ) ) ) {
 	/**
 	 * Class to create the settings section.
@@ -67,9 +71,7 @@ if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'Lear
 								$sfwd_lms->deactivate();
 
 								// finally redirect the admin to the plugins listing.
-								wp_redirect( admin_url( 'plugins.php' ) );
-
-								die();
+								learndash_safe_redirect( admin_url( 'plugins.php' ) );
 							}
 						}
 					}
@@ -99,14 +101,11 @@ if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'Lear
 							);
 						?>
 						</span></p>
-						<p><input type="submit" value="<?php esc_html_e( 'Submit', 'learndash' ); ?>" /></p>
+						<p><input class="button" type="submit" value="<?php esc_html_e( 'Submit', 'learndash' ); ?>" /></p>
 					</form>
 					<?php
 						$js_confirm_message = esc_html__( 'Are you sure that you want to remove ALL LearnDash data?', 'learndash' );
 					?>
-					<script>
-						
-					</script>
 					<?php
 				}
 			}

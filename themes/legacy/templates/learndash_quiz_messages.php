@@ -186,6 +186,11 @@ switch( $context ) {
 		// Add alternate message here
 		break;
 	
+	// Default Message: 'Current'
+	case 'quiz_quiz_current_message':
+		// Add alternate message here
+		break;
+
 	// Default Message: 'Answered'
 	case 'quiz_quiz_answered_message':
 		// Add alternate message here

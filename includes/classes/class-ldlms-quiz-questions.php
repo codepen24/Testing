@@ -527,13 +527,27 @@ if ( ! class_exists( 'LDLMS_Quiz_Questions' ) ) {
 				$question_order = (int)0;
 				foreach ( $questions as $question_post_id => $question_pro_id ) {
 					$question_order++;
-					$wpdb->update(
-						$wpdb->posts,
-						array( 'menu_order' => $question_order ),
-						array( 'ID' => $question_post_id ),
-						array( '%d' ),
-						array( '%d' )
-					);
+
+					if ( ( defined( 'LEARNDASH_BUILDER_STEPS_UPDATE_POST' ) ) && ( true === LEARNDASH_BUILDER_STEPS_UPDATE_POST ) ) {
+						$edit_post = array(
+							'ID'         => $question_post_id,
+							'menu_order' => $question_order,
+						);
+						wp_update_post( $edit_post );
+					} else {
+						$update_ret = $wpdb->update(
+							$wpdb->posts,
+							array( 'menu_order' => $question_order ),
+							array( 'ID' => $question_post_id ),
+							array( '%d' ),
+							array( '%d' )
+						);
+
+						if ( ( $update_ret ) && ( ! is_wp_error( $update_ret ) ) ) {
+							clean_post_cache( $question_post_id );
+						}
+					}
+
 					if ( ! empty( $this->quiz_pro_id ) ) {
 						$answer_fields = array( 'quiz_id' => $this->quiz_pro_id, 'sort' => $question_order );
 						$answer_types = array( '%d', '%d' );

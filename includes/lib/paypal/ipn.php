@@ -3,334 +3,498 @@
  *  PHP-PayPal-IPN Handler
  */
 
-/*
-NOTE: the IPN call is asynchronous and can arrive later than the browser is redirected to the success url by paypal
-You cannot rely on setting up some details here and then using them in your success page.
- */
-
-global $ld_lms_processing_id;
-$ld_lms_processing_id = time();
-
-global $ipn_log_filename;
-$ipn_log_filename = '';
-
-$wp_upload_dir    = wp_upload_dir();
-$ld_ipn_logs_dir  = trailingslashit( $wp_upload_dir['basedir'] ) . 'learndash/paypal_ipn/';
-$ipn_log_filename = trailingslashit( $ld_ipn_logs_dir ) . $ld_lms_processing_id . '.log';
-if ( ! file_exists( $ld_ipn_logs_dir ) ) {
-	if ( wp_mkdir_p( $ld_ipn_logs_dir ) == false ) {
-		$ipn_log_filename = '';
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
-@file_put_contents( trailingslashit( $ld_ipn_logs_dir ) . 'index.php', '// nothing to see here' );
 
+if ( ! defined( 'LEARNDASH_VERSION' ) ) {
+	exit;
+}
 
-if ( ! function_exists( 'ld_ipn_debug' ) ) {
-	function ld_ipn_debug( $msg ) {
-		global $ld_lms_processing_id, $ipn_log_filename;
+if ( ! class_exists( 'LearnDash_PayPal_IPN' ) ) {
+	/**
+	 * Class to create the instance.
+	 */
+	class LearnDash_PayPal_IPN {
 
-		if ( ( isset( $_GET['debug'] ) ) && ( ! empty( $ipn_log_filename ) ) ) {
-			// error_log( "[$ld_lms_processing_id] " . $msg ."\r\n", 3, $ipn_log_filename );
+		private static $ipn_transaction_log;
+		private static $ipn_transaction_data;
+		private static $ipn_transaction_post_id;
 
-			file_put_contents( $ipn_log_filename, learndash_adjust_date_time_display( time(), 'Y-m-d H:i:s' ) . ' [' . $ld_lms_processing_id . '] ' . $msg . "\r\n", FILE_APPEND );
+		private static $ld_paypal_settings;
+
+		/**
+		 * Public constructor for class
+		 *
+		 * @since 3.2.2
+		 */
+		private function __construct() {
 		}
-	}
-}
 
-ld_ipn_debug( 'DEBUG: _POST<pre>' . print_r( $_POST, true ) . '</pre>' );
-ld_ipn_debug( 'DEBUG: _GET<pre>' . print_r( $_GET, true ) . '</pre>' );
+		public static function init() {
+			self::$ipn_transaction_log     = '';
+			self::$ipn_transaction_data    = array();
+			self::$ipn_transaction_post_id = 0;
 
-ld_ipn_debug( 'IPN Listener Loading...' );
-require __DIR__ . '/ipnlistener.php';
-$listener = new IpnListener();
+			self::$ld_paypal_settings = array();
+		}
 
-/**
- * Action for initial IpnListener to allow override of public attributes.
- *
- * @since 2.2.1.2
- *
- * @param Object  $listener Instance of IpnListener Class.
- */
-do_action_ref_array( 'leandash_ipnlistener_init', array( &$listener ) );
+		/**
+		 * Entry point for IPN processing
+		 *
+		 * @since 3.2.2
+		 */
+		public static function ipn_process() {
+			// Create our initial Transaction.
+			self::ipn_init_transaction();
+			self::ipn_debug( "---" );
 
+			self::ipn_init_post_data();
+			self::ipn_debug( "---" );
 
-ld_ipn_debug( 'IPN Listener Loaded' );
+			self::ipn_init_settings();
+			self::ipn_debug( "---" );
 
-/*
-While testing your IPN script you should be using a PayPal "Sandbox" (get an account at: https://developer.paypal.com )
-When you are ready to go live change use_sandbox to false.*/
+			self::ipn_init_listener();
+			self::ipn_debug( "---" );
 
-$paypal_settings                   = LearnDash_Settings_Section::get_section_settings_all( 'LearnDash_Settings_Section_PayPal' );
-$paypal_settings['paypal_sandbox'] = ( 'yes' === $paypal_settings['paypal_sandbox'] ) ? 1 : 0;
-ld_ipn_debug( 'DEBUG: paypal_settings<pre>' . print_r( $paypal_settings, true ) . '</pre>' );
+			self::ipn_validate_post_data();
+			self::ipn_debug( "---" );
 
-ld_ipn_debug( 'Course Settings Loaded.' );
+			self::ipn_process_post_data();
+			self::ipn_debug( "---" );
 
-$listener->use_sandbox = false;
+			self::ipn_process_user_data();
+			self::ipn_debug( "---" );
 
-if ( ! empty( $paypal_settings['paypal_sandbox'] ) ) {
-	$listener->use_sandbox = true;
-	ld_ipn_debug( 'Sandbox Enabled.' );
-}
+			self::ipn_complete_transaction();
+			self::ipn_debug( "---" );
 
-try {
-	ld_ipn_debug( 'Checking Post Method.' );
-	$listener->requirePostMethod();
-	$verified = $listener->processIpn();
-	ld_ipn_debug( 'Post method check completed.' );
-} catch ( Exception $e ) {
-	ld_ipn_debug( 'Post method error: <pre>' . print_r( $e->getMessage(), true ) . '</pre>' );
-	ld_ipn_debug( 'Found Exception. Ending Script.' );
-	exit( 0 );
-}
-$transaction = $_POST;
-$transaction = array_map( 'trim', $transaction );
-$transaction = array_map( 'esc_attr', $transaction );
+			self::ipn_debug( 'IPN Processing Completed Successfully.' );
+			self::ipn_exit();
+			// we're done here.
+		}
 
-$transaction['log_file'] = basename( $ipn_log_filename );
+		public static function ipn_init_post_data() {
+			self::$ipn_transaction_data = $_POST;
+			self::$ipn_transaction_data = array_map( 'trim', self::$ipn_transaction_data );
+			self::$ipn_transaction_data = array_map( 'esc_attr', self::$ipn_transaction_data );
 
-if ( ( isset( $transaction['item_number'] ) ) && ( ! empty( $transaction['item_number'] ) ) ) {
-	$transaction['course_id'] = absint( $transaction['item_number'] );
-	$transaction['course']    = get_post( $transaction['course_id'] );
-	if ( ( ! $transaction['course'] ) || ( ! is_a( $transaction['course'], 'WP_Post' ) ) || ( learndash_get_post_type_slug( 'course' ) !== $transaction['course']->post_type ) ) {
-		$transaction['course_id'] = 0;
-		$transaction['course']    = '';
-	}
-}	
+			// First log our incoming vars.
+			self::ipn_debug( 'IPN Post vars<pre>' . print_r( self::$ipn_transaction_data, true ) . '</pre>' );
+		}
 
-if ( ! empty( $transaction['course_id'] ) ) {
-	$course_settings = learndash_get_setting( $transaction['course_id'] );
+		/**
+		 * Load LD PayPal Settings
+		 */
+		public static function ipn_init_settings() {
+			self::$ld_paypal_settings = LearnDash_Settings_Section::get_section_settings_all( 'LearnDash_Settings_Section_PayPal' );
 
-	if ( isset( $transaction['mc_gross'] ) ) {
-		if ( ( isset( $course_settings['course_price_type'] ) ) && ( 'paynow' === $course_settings['course_price_type'] ) ) {
-			if ( ( isset( $course_settings['course_price'] ) ) && ( ! empty( $course_settings['course_price'] ) ) ) {
-				$server_course_price = preg_replace( '/[^0-9.]/', '', $course_settings['course_price'] );
+			if ( ! isset( self::$ld_paypal_settings['paypal_sandbox'] ) ) {
+				self::$ld_paypal_settings['paypal_sandbox'] = '';
+			}
+			self::$ld_paypal_settings['paypal_sandbox'] = ( 'yes' === self::$ld_paypal_settings['paypal_sandbox'] ) ? 1 : 0;
+
+			// Then log the PayPal settings.
+			self::ipn_debug( 'LearnDash Paypal Settings<pre>' . print_r( self::$ld_paypal_settings, true ) . '</pre>' );
+
+			if ( ( ! isset( self::$ld_paypal_settings['paypal_email'] ) ) || ( empty( self::$ld_paypal_settings['paypal_email'] ) ) ) {
+				self::ipn_debug( "ERROR: LD PayPal settings 'paypal_email' is empty. [" . self::$ld_paypal_settings['paypal_email'] . ']' );
+				self::ipn_exit();
+			}
+			self::$ld_paypal_settings['paypal_email'] = sanitize_email( self::$ld_paypal_settings['paypal_email'] );
+			self::$ld_paypal_settings['paypal_email'] = strtolower( self::$ld_paypal_settings['paypal_email'] );
+
+			if ( ! is_email( self::$ld_paypal_settings['paypal_email'] ) ) {
+				self::ipn_debug( "ERROR: LD PayPal settings 'paypal_email' is invalid. [" . self::$ld_paypal_settings['paypal_email'] . ']' );
+				self::ipn_exit();
+			}
+		}
+
+		public static function ipn_init_listener() {
+			self::ipn_debug( 'IPN Listener Loading...' );
+			if ( ! file_exists( __DIR__ . '/ipnlistener.php' ) ) {
+				self::ipn_debug( 'ERROR: Required file not found ' . __DIR__ . '/ipnlistener.php' );
+				self::ipn_exit();
+			}
+			require __DIR__ . '/ipnlistener.php';
+			$learndash_paypal_ipn_listener = new IpnListener();
+
+			/**
+			 * Fires after instansiating a ipnlistener object to allow override of public attributes.
+			 *
+			 * @since 2.2.1.2
+			 *
+			 * @param Object  $learndash_paypal_ipn_listener An instance of IpnListener Class.
+			 */
+			do_action_ref_array( 'learndash_ipnlistener_init', array( &$learndash_paypal_ipn_listener ) );
+
+			self::ipn_debug( 'IPN Listener Loaded' );
+
+			if ( ! empty( self::$ld_paypal_settings['paypal_sandbox'] ) ) {
+				self::ipn_debug( 'PayPal Sandbox Enabled.' );
+				$learndash_paypal_ipn_listener->use_sandbox = true;
+			} else {
+				self::ipn_debug( 'PayPal Live Enabled.' );
+				$learndash_paypal_ipn_listener->use_sandbox = false;
+			}
+
+			try {
+				self::ipn_debug( 'Checking IPN Post Method.' );
+				$learndash_paypal_ipn_listener->requirePostMethod();
+				$learndash_paypal_ipn_verified = $learndash_paypal_ipn_listener->processIpn();
+				self::ipn_debug( 'IPN Post method check completed.' );
+				if ( ! $learndash_paypal_ipn_verified ) {
+					/**
+					 * An Invalid IPN *may* be caused by a fraudulent transaction
+					 * attempt. It's a good idea to have a developer or sys admin
+					 * manually investigate any invalid IPN.
+					 */
+					self::ipn_debug( 'ERROR: Invalid IPN. Shutting Down Processing.' );
+					self::ipn_exit();
+				}
+			} catch ( Exception $e ) {
+				self::ipn_debug( 'IPN Post method error: <pre>' . print_r( $e->getMessage(), true ) . '</pre>' );
+				self::ipn_debug( 'Found Exception. Ending Script.' );
+				self::ipn_exit();
+			}
+		}
+
+		public static function ipn_validate_post_data() {
+			if ( ! isset( self::$ipn_transaction_data['payment_status'] ) ) {
+				self::ipn_debug( "ERROR: Missing 'payment_status' in IPN data" );
+				self::ipn_exit();
+			}
+
+			if ( 'completed' !== strtolower( self::$ipn_transaction_data['payment_status'] ) ) {
+				self::ipn_debug( "ERROR: 'payment_status' not 'completed' in IPN data" );
+				self::ipn_exit();
+			}
+			self::ipn_debug( "Valid IPN 'payment_status': " . self::$ipn_transaction_data['payment_status'] );
+
+			if ( ! isset( self::$ipn_transaction_data['payment_type'] ) ) {
+				self::ipn_debug( "ERROR: Missing transaction 'payment_type' in IPN data" );
+				self::ipn_exit();
+			}
+
+			if ( 'instant' !== self::$ipn_transaction_data['payment_type'] ) {
+				self::ipn_debug( "ERROR: Invalid 'payment_type' in IPN data. [" . self::$ipn_transaction_data['payment_type'] . ']' );
+				self::ipn_exit();
+			}
+			self::ipn_debug( "Valid IPN 'payment_type' : " . self::$ipn_transaction_data['payment_type'] );
+
+			if ( ( ! isset( self::$ipn_transaction_data['mc_gross'] ) ) || ( empty( self::$ipn_transaction_data['mc_gross'] ) ) ) {
+				self::ipn_debug( "ERROR: Missing or empty 'mc_gross' in IPN data." );
+				self::ipn_exit();
+			}
+			self::ipn_debug( "Valid IPN 'mc_gross' : " . self::$ipn_transaction_data['mc_gross'] );
+
+			if ( ( ! isset( self::$ipn_transaction_data['item_number'] ) ) || ( empty( self::$ipn_transaction_data['item_number'] ) ) ) {
+				self::ipn_debug( "ERROR: Invalid or missing 'item_number' in IPN data" );
+				self::ipn_exit();
+			}
+
+			if ( ! isset( self::$ipn_transaction_data['payer_email'] ) ) {
+				self::ipn_debug( "ERROR: Missing transaction 'payer_email' in IPN data" );
+				self::ipn_exit();
+			}
+
+			self::$ipn_transaction_data['payer_email'] = sanitize_email( self::$ipn_transaction_data['payer_email'] );
+			self::$ipn_transaction_data['payer_email'] = strtolower( self::$ipn_transaction_data['payer_email'] );
+
+			if ( ! is_email( self::$ipn_transaction_data['payer_email'] ) ) {
+				self::ipn_debug( "ERROR: Invalid 'payer_email' in IPN data. [" . self::$ipn_transaction_data['payer_email'] . ']' );
+				self::ipn_exit();
+			}
+			self::ipn_debug( "Valid IPN 'payer_email' : " . self::$ipn_transaction_data['payer_email'] );
+
+			if ( isset( self::$ipn_transaction_data['first_name'] ) ) {
+				self::$ipn_transaction_data['first_name'] = esc_attr( self::$ipn_transaction_data['first_name'] );
+			} else {
+				self::$ipn_transaction_data['first_name'] = '';
+			}
+
+			if ( isset( self::$ipn_transaction_data['last_name'] ) ) {
+				self::$ipn_transaction_data['last_name'] = esc_attr( self::$ipn_transaction_data['last_name'] );
+			} else {
+				self::$ipn_transaction_data['last_name'] = '';
+			}
+
+			$valid_ipn_email = false;
+
+			if ( isset( self::$ipn_transaction_data['receiver_email'] ) ) {
+				self::$ipn_transaction_data['receiver_email'] = sanitize_email( self::$ipn_transaction_data['receiver_email'] );
+				self::$ipn_transaction_data['receiver_email'] = strtolower( self::$ipn_transaction_data['receiver_email'] );
+
+				if ( self::$ipn_transaction_data['receiver_email'] === self::$ld_paypal_settings['paypal_email'] ) {
+					$valid_ipn_email = true;
+				}
+				self::ipn_debug( 'Receiver Email: ' . self::$ipn_transaction_data['receiver_email'] . ' Valid Receiver Email? :' . ( true === $valid_ipn_email ? 'YES' : 'NO' ) );
+			}
+
+			if ( isset( self::$ipn_transaction_data['business'] ) ) {
+				self::$ipn_transaction_data['business'] = sanitize_email( self::$ipn_transaction_data['business'] );
+				self::$ipn_transaction_data['business'] = strtolower( self::$ipn_transaction_data['business'] );
+
+				if ( self::$ipn_transaction_data['business'] === self::$ld_paypal_settings['paypal_email'] ) {
+					$valid_ipn_email = true;
+				}
+				self::ipn_debug( 'Business Email: ' . self::$ipn_transaction_data['business'] . ' Valid Business Email? :' . ( true === $valid_ipn_email ? 'YES' : 'NO' ) );
+			}
+
+			if ( true !== $valid_ipn_email ) {
+				self::ipn_debug( 'Error: IPN with invalid receiver/business email!' );
+				self::ipn_exit();
+			}
+		}
+
+		public static function ipn_process_post_data() {
+			self::$ipn_transaction_data['post_id']          = 0;
+			self::$ipn_transaction_data['post_type']        = '';
+			self::$ipn_transaction_data['post_type_prefix'] = '';
+
+			self::$ipn_transaction_data['post_id']   = absint( self::$ipn_transaction_data['item_number'] );
+			self::$ipn_transaction_data['post_type'] = get_post_type( self::$ipn_transaction_data['post_id'] );
+
+			if ( learndash_get_post_type_slug( 'course' ) === self::$ipn_transaction_data['post_type'] ) {
+				self::$ipn_transaction_data['post_type_prefix'] = 'course';
+				self::ipn_debug( 'Purchased Course access [' . self::$ipn_transaction_data['post_id'] . ']' );
+			} elseif ( learndash_get_post_type_slug( 'group' ) === self::$ipn_transaction_data['post_type'] ) {
+				self::$ipn_transaction_data['post_type_prefix'] = 'group';
+				self::ipn_debug( 'Purchased Group access [' . self::$ipn_transaction_data['post_id'] . ']' );
+			} else {
+				self::$ipn_transaction_data['post_type'] = '';
+			}
+
+			if ( empty( self::$ipn_transaction_data['post_type'] ) ) {
+				self::ipn_debug( "ERROR: Invalid 'post_id' in IPN data. Unable to determine related Course/Group post." );
+				self::ipn_exit();
+			}
+
+			if ( ( ! empty( self::$ipn_transaction_data['post_id'] ) ) && ( ! empty( self::$ipn_transaction_data['post_type_prefix'] ) ) ) {
+				$post_settings    = learndash_get_setting( self::$ipn_transaction_data['post_id'] );
+				$post_type_prefix = self::$ipn_transaction_data['post_type_prefix'];
+
+				if ( ( ! isset( $post_settings[ $post_type_prefix . '_price_type' ] ) ) || ( 'paynow' !== $post_settings[ $post_type_prefix . '_price_type' ] ) ) {
+					self::ipn_debug( 'ERROR: ' . ucfirst( self::$ipn_transaction_data['post_type_prefix'] ) . " Price Type setting not set to 'paynow' or empty. Aborting" );
+					self::ipn_exit();
+				}
+
+				if ( ( ! isset( $post_settings[ $post_type_prefix . '_price' ] ) ) || ( empty( $post_settings[ $post_type_prefix . '_price' ] ) ) ) {
+					self::ipn_debug( 'ERROR: ' . ucfirst( self::$ipn_transaction_data['post_type_prefix'] ) . ' Price setting not set or empty. Aborting' );
+					self::ipn_exit();
+				}
+
+				$server_course_price = preg_replace( '/[^0-9.]/', '', $post_settings[ $post_type_prefix . '_price' ] );
 				$server_course_price = number_format( floatval( $server_course_price ), 2, '.', '' );
+				self::ipn_debug( ucfirst( $post_type_prefix ) . ' Price [' . $server_course_price . ']' );
 
-				$ipn_course_price = preg_replace( '/[^0-9.]/', '', $transaction['mc_gross'] );
+				$ipn_course_price = preg_replace( '/[^0-9.]/', '', self::$ipn_transaction_data['mc_gross'] );
 				$ipn_course_price = floatval( $ipn_course_price );
-				ld_ipn_debug( 'DEBUG: IPN GrossTax [' . $ipn_course_price . ']' );
+				self::ipn_debug( 'IPN GrossTax [' . $ipn_course_price . ']' );
 
-				if ( isset( $transaction['tax'] ) ) {
-					$ipn_tax_price = preg_replace( '/[^0-9.]/', '', $transaction['tax'] );
+				if ( isset( self::$ipn_transaction_data['tax'] ) ) {
+					$ipn_tax_price = preg_replace( '/[^0-9.]/', '', self::$ipn_transaction_data['tax'] );
 				} else {
 					$ipn_tax_price = 0;
 				}
 				$ipn_tax_price = floatval( $ipn_tax_price );
-				ld_ipn_debug( 'DEBUG: IPN Tax [' . $ipn_tax_price . ']' );
+				self::ipn_debug( 'IPN Tax [' . $ipn_tax_price . ']' );
 
 				$ipn_course_price = $ipn_course_price - $ipn_tax_price;
 				$ipn_course_price = number_format( floatval( $ipn_course_price ), 2, '.', '' );
-				ld_ipn_debug( 'DEBUG: IPN Gross - Tax (result) [' . $ipn_course_price . ']' );
+				self::ipn_debug( 'IPN Gross - Tax (result) [' . $ipn_course_price . ']' );
 
 				if ( $server_course_price == $ipn_course_price ) {
-					ld_ipn_debug( 'IPN Price match: IPN Price [' . $ipn_course_price . '] Course Price [' . $server_course_price . ']' );
+					self::ipn_debug( 'IPN Price match: IPN Price [' . $ipn_course_price . '] ' . ucfirst( $post_type_prefix ) . ' Price [' . $server_course_price . ']' );
 				} else {
-					ld_ipn_debug( 'Error: IPN Price mismatch: IPN Price [' . $ipn_course_price . '] Course Price [' . $server_course_price . ']' );
-					$verified = false;
+					self::ipn_debug( 'Error: IPN Price mismatch: IPN Price [' . $ipn_course_price . '] ' . ucfirst( $post_type_prefix ) . ' Price [' . $server_course_price . ']' );
+					self::ipn_exit();
 				}
 			}
 		}
-	} else {
-		ld_ipn_debug( "Error: Missing 'mc_gross' in IPN data" );
-		$verified = false;
-	}
-} else {
-	ld_ipn_debug( "Error: Missing 'item_number' in IPN data" );
-	$verified = false;
-}
 
-$admin_email  = get_option( 'admin_email' );
-if ( ! empty( $admin_email ) ) {
-	$admin_email = sanitize_email( $admin_email );
-}
-if ( ! is_email( $admin_email ) ) {
-	ld_ipn_debug( "Error: Invalid 'admin_email' get_option: " . $admin_email );
-	exit();
-}
+		public static function ipn_process_user_data() {
+			// get / add user
+			$user = '';
+			if ( ! empty( self::$ipn_transaction_data['custom'] ) ) {
+				$user = get_user_by( 'id', absint( self::$ipn_transaction_data['custom'] ) );
+				if ( ( $user ) && ( is_a( $user, 'WP_User' ) ) ) {
+					self::ipn_debug( "Valid 'custom' in IPN data: [" . absint( self::$ipn_transaction_data['custom'] ) . ']. Matched to User ID [' . $user->ID . ']' );
+					self::$ipn_transaction_data['user_id'] = $user->ID;
+				} else {
+					$user = '';
+					self::ipn_debug( "Error: Unknown User ID 'custom' in IPN data: " . absint( self::$ipn_transaction_data['custom'] ) );
+					self::ipn_debug( "Continue processing to create new user from IPN 'payer_email'." );
+				}
+			}
 
-$seller_email = $paypal_settings['paypal_email'];
-if ( ! empty( $seller_email ) ) {
-	$seller_email = sanitize_email( $seller_email );
-}
-if ( ! is_email( $seller_email ) ) {
-	ld_ipn_debug( "Error: Invalid 'seller_email' in PayPal settings: " . $seller_email );
-	exit();
-}
+			if ( empty( $user ) ) {
+				if ( self::$ipn_transaction_data['user_id'] = email_exists( self::$ipn_transaction_data['payer_email'] ) ) {
 
+					self::ipn_debug( "IPN 'payer_email' matched to existing user. User Id: " . self::$ipn_transaction_data['user_id'] );
+					$user = get_user_by( 'id', self::$ipn_transaction_data['user_id'] );
+				} else {
+					self::ipn_debug( 'User email does not exists. Checking available username...' );
+					$username = self::$ipn_transaction_data['payer_email'];
 
-ld_ipn_debug( 'Loaded Email IDs. Notification Email: ' . $admin_email . ' Seller Email: ' . $seller_email );
-$notify_on_valid_ipn = 1;
+					if ( self::$ipn_transaction_data['user_id'] = username_exists( self::$ipn_transaction_data['payer_email'] ) ) {
 
-ld_ipn_debug( 'Payment Verified? : ' . ( ( $verified ) ? 'YES' : 'NO' ) );
-/*The processIpn() method returned true if the IPN was "VERIFIED" and false if it was "INVALID".*/
+						self::ipn_debug( 'Username matching email found, cannot use.' );
+						$count = 1;
 
-if ( $verified ) {
-	ld_ipn_debug( 'Sure, Verfied! Moving Ahead.' );
-	/*
-	  Once you have a verified IPN you need to do a few more checks on the POST
-	fields--typically against data you stored in your database during when the
-	end user made a purchase (such as in the "success" page on a web payments
-	standard button). The fields PayPal recommends checking are:
-	1. Check the $_POST['payment_status'] is "Completed"
-	2. Check that $_POST['txn_id'] has not been previously processed
-	3. Check that $_POST['receiver_email'] is get_option('EVI_Paypal_Seller_email')
-	4. Check that $_POST['payment_amount'] and $_POST['payment_currency']
-	are correct
-	 */
+						do {
+							$new_username = $count . '_' . $email;
+							$count++;
+						} while ( username_exists( $new_username ) );
 
-	// note: This is just notification for us. Paypal has already made up its mind and the payment has been processed
-	// (you can't cancel that here)
-	ld_ipn_debug( 'Receiver Email: ' . $transaction['receiver_email'] . ' Valid Receiver Email? :' . ( ( $transaction['receiver_email'] == $seller_email ) ? 'YES' : 'NO' ) );
+						$username = $new_username;
+						self::ipn_debug( 'Accepting user with $username as :' . $new_username );
+					}
 
-	if ( $transaction['receiver_email'] != $seller_email ) {
+					$random_password = wp_generate_password( 12, false );
+					self::ipn_debug( 'Creating User with username: ' . $username . ' email: ' . self::$ipn_transaction_data['payer_email'] );
+					self::$ipn_transaction_data['user_id'] = wp_create_user( $username, $random_password, self::$ipn_transaction_data['payer_email'] );
+					self::ipn_debug( 'User created with user_id: ' . self::$ipn_transaction_data['user_id'] );
 
-		if ( $admin_email != '' ) {
-			// mail( $admin_email, 'Warning: IPN with invalid receiver email!', $listener->getTextReport() );
-			ld_ipn_debug( 'Warning! IPN with invalid receiver email!' );
-		} else {
-			// error_log( 'notification email not set' );
+					// Handle all three versions of WP wp_new_user_notification
+					global $wp_version;
+					if ( version_compare( $wp_version, '4.3.0', '<' ) ) {
+						wp_new_user_notification( self::$ipn_transaction_data['user_id'], $user_pass );
+					} elseif ( version_compare( $wp_version, '4.3.0', '==' ) ) {
+						wp_new_user_notification( self::$ipn_transaction_data['user_id'], 'both' );
+					} elseif ( version_compare( $wp_version, '4.3.1', '>=' ) ) {
+						wp_new_user_notification( self::$ipn_transaction_data['user_id'], null, 'both' );
+					}
+					self::ipn_debug( 'New User Notification Sent.' );
+
+					$user = get_user_by( 'id', self::$ipn_transaction_data['user_id'] );
+
+					if ( ( ! empty( self::$ipn_transaction_data['first_name'] ) ) && ( ! empty( self::$ipn_transaction_data['first_name'] ) ) ) {
+						self::ipn_debug( 'Updating User: ' . self::$ipn_transaction_data['user_id'] . ' first_name: ' . self::$ipn_transaction_data['first_name'] . ' last_name: ' . self::$ipn_transaction_data['last_name'] );
+						wp_update_user(
+							array(
+								'ID'         => self::$ipn_transaction_data['user_id'],
+								'first_name' => self::$ipn_transaction_data['first_name'],
+								'last_name'  => self::$ipn_transaction_data['last_name'],
+							)
+						);
+					}
+				}
+			}
+			self::ipn_grant_access();
 		}
-		// We abort here to prevent fake IPN simulator posts creating users, etc.
-		exit();
-	}
 
-	ld_ipn_debug( 'Payment Status: ' . $transaction['payment_status'] . ' Completed? :' . ( ( 'Completed' === $transaction['payment_status'] ) ? 'YES' : 'NO' ) );
+		/**
+		 * Logs the message to the IPN Processing log.
+		 *
+		 * @since 3.2.2
+		 */
+		public static function ipn_debug( $msg = '' ) {
+			if ( ! empty( $msg ) ) {
+				if ( '---' === $msg ) {
+					$dattime = '';
+					$msg = "\r\n" . $msg;
+				} else {
+					$dattime                    = learndash_adjust_date_time_display( time(), 'Y-m-d H:i:s' );
+				}
+				self::$ipn_transaction_log .= $dattime . ' ' . $msg . "\r\n";
+				error_log( $dattime . ' ' . $msg . "\r\n", 3, ABSPATH . '/ld_debug.log' );
+			}
+		}
 
-	if ( 'Completed' === $transaction['payment_status'] ) {
-		ld_ipn_debug( 'Sure, Completed! Moving Ahead.' );
-		// a customer has purchased from this website
-		// add him to database for customer support
+		public static function ipn_exit() {
 
-		// get / add user
-
-		$email = sanitize_email( $transaction['payer_email'] );
-		if ( ! is_email( $email ) ) {
-			ld_ipn_debug( "Error: Invalid 'payer_email' in IPN data: ". $email );
+			if ( ! empty( self::$ipn_transaction_log ) ) {
+				$transaction_post_id = self::ipn_init_transaction();
+				if ( ! empty( $transaction_post_id ) ) {
+					update_post_meta( $transaction_post_id, 'processing_log', self::$ipn_transaction_log );
+				}
+			}
 			exit();
 		}
-		ld_ipn_debug( 'Payment Email: ' . $email );
 
-		if ( ! empty( $transaction['custom'] ) ) {
-			$user = get_user_by( 'id', absint( $transaction['custom'] ) );
-			if ( ( ! $user ) || ( ! is_a( $user, 'WP_User' ) ) ) {
-				ld_ipn_debug( "Error: Unknown user 'custom' in IPN data: ". absint( $transaction['custom'] ) );
-				exit();
+		public static function ipn_init_transaction() {
+			if ( empty( self::$ipn_transaction_post_id ) ) {
+				self::$ipn_transaction_post_id = wp_insert_post(
+					array(
+						'post_title'  => 'PayPal IPN Transaction',
+						'post_type'   => 'sfwd-transactions',
+						'post_status' => 'draft',
+						'post_author' => 0,
+					)
+				);
+
+				self::ipn_debug( 'Starting Transaction. Post Id: ' . self::$ipn_transaction_post_id );
 			}
-			ld_ipn_debug( 'User ID [' . $transaction['custom'] . '] passed back by Paypal. Checking if user exists. User Found: ' . ( ! empty( $user->ID ) ? 'Yes' : 'No' ) );
+
+			return self::$ipn_transaction_post_id;
 		}
 
-		if ( ! empty( $user->ID ) ) {
+		public static function ipn_complete_transaction() {
 
-			$user_id = $user->ID;
-			ld_ipn_debug( 'User found. Passed back by Paypal. User ID: ' . $user_id );
+			$transaction_post_id = self::ipn_init_transaction();
 
-		} elseif ( is_user_logged_in() ) {
+			if ( ! empty( $transaction_post_id ) ) {
+				self::ipn_debug( 'Completing Transaction: Post Id: ' . $transaction_post_id );
 
-			ld_ipn_debug( 'User is logged in.' );
-			$user    = wp_get_current_user();
-			$user_id = $user->ID;
-			ld_ipn_debug( 'User is logged in. User Id: ' . $user_id );
+				$post_id = wp_insert_post(
+					array(
+						'ID'          => $transaction_post_id,
+						'post_title'  => self::ipn_get_transaction_title(),
+						'post_type'   => 'sfwd-transactions',
+						'post_status' => 'publish',
+						'post_author' => self::$ipn_transaction_data['user_id'],
+					)
+				);
 
-		} else {
-
-			ld_ipn_debug( 'User not logged in.' );
-
-			if ( $user_id = email_exists( $email ) ) {
-
-				ld_ipn_debug( 'User email exists. User Found. User Id: ' . $user_id );
-				$user = get_user_by( 'id', $user_id );
-
-			} else {
-
-				ld_ipn_debug( 'User email does not exists. Checking available username...' );
-				$username = $email;
-
-				if ( username_exists( $email ) ) {
-
-					ld_ipn_debug( 'Username matching email found, cannot use. Looking further with $count_$email.' );
-					$count = 1;
-
-					do {
-						$new_username = $count . '_' . $email;
-						$count++;
-					} while ( username_exists( $new_username ) );
-
-					$username = $new_username;
-					ld_ipn_debug( 'Accepting user with $username as :' . $new_username );
+				unset( self::$ipn_transaction_data['post'] );
+				foreach ( self::$ipn_transaction_data as $k => $v ) {
+					update_post_meta( $post_id, $k, $v );
 				}
-
-				$random_password = wp_generate_password( 12, false );
-				ld_ipn_debug( 'Creating User with username:' . $username . ' email: ' . $email );
-				$user_id = wp_create_user( $username, $random_password, $email );
-				ld_ipn_debug( 'User created with user_id: ' . $user_id );
-				$user = get_user_by( 'id', $user_id );
-				// Handle all three versions of WP wp_new_user_notification
-				global $wp_version;
-				if ( version_compare( $wp_version, '4.3.0', '<' ) ) {
-					wp_new_user_notification( $user_id, $user_pass );
-				} elseif ( version_compare( $wp_version, '4.3.0', '==' ) ) {
-					wp_new_user_notification( $user_id, 'both' );
-				} elseif ( version_compare( $wp_version, '4.3.1', '>=' ) ) {
-					wp_new_user_notification( $user_id, null, 'both' );
-				}
-				ld_ipn_debug( 'Notification Sent.' );
-
 			}
 		}
 
-		// record in course
-		ld_ipn_debug( 'Starting to give course access...' );
-		$meta = ld_update_course_access( absint( $user_id ), $transaction['course_id'] );
+		public static function ipn_get_transaction_title() {
+			$transaction_post_title = '';
+			if ( ! empty( self::$ipn_transaction_data['post_id'] ) ) {
+				$post_title = get_the_title( self::$ipn_transaction_data['post_id'] );
+				if ( learndash_get_post_type_slug( 'course' ) === self::$ipn_transaction_data['post_type'] ) {
+					$transaction_post_title = 'Course ' . $post_title;
+				} elseif ( learndash_get_post_type_slug( 'group' ) === self::$ipn_transaction_data['post_type'] ) {
+					$transaction_post_title = 'Group ' . $post_title;
+				}
+			}
 
-		/*
-		// Removed 2020-03-31: Not really sure why this is here. There is no user meta '_sfwd-courses'
-		$usermeta = get_user_meta( $user_id, '_sfwd-courses', true );
-		ld_ipn_debug( 'Fetched User Meta:' . $usermeta );
+			if ( empty( $transaction_post_title ) ) {
+				$transaction_post_title = 'Unknown';
+			}
 
-		if ( empty( $usermeta) ) {
-			$usermeta = $course_id;
-		} else {
-			$usermeta .= ",$course_id";
+			$transaction_post_title .= ' Purchased By ' . self::$ipn_transaction_data['payer_email'];
+
+			return $transaction_post_title;
 		}
 
-		update_user_meta( $user_id, '_sfwd-courses', $usermeta );
-		ld_ipn_debug( 'Updated user meta:' . $usermeta );
-		*/
+		public static function ipn_grant_access() {
+			if ( ( ! empty( self::$ipn_transaction_data['user_id'] ) ) && ( ! empty( self::$ipn_transaction_data['post_id'] ) ) ) {
+				if ( learndash_get_post_type_slug( 'course' ) === self::$ipn_transaction_data['post_type'] ) {
+					self::$ipn_transaction_data['course_id'] = absint( self::$ipn_transaction_data['post_id'] );
 
-		// log transaction
-		ld_ipn_debug( 'Starting Transaction Creation.' );
-		$course_title = '';
-		if ( ! empty( $transaction['course'] ) ) {
-			$course_title = $transaction['course']->post_title;
+					// record in course
+					self::ipn_debug( 'Starting to give Course access: User ID[' . absint( self::$ipn_transaction_data['user_id'] ) . '] Course[' . self::$ipn_transaction_data['course_id'] . ']' );
+					ld_update_course_access( absint( self::$ipn_transaction_data['user_id'] ), self::$ipn_transaction_data['course_id'] );
+
+				} elseif ( learndash_get_post_type_slug( 'group' ) === self::$ipn_transaction_data['post_type'] ) {
+					self::$ipn_transaction_data['group_id'] = absint( self::$ipn_transaction_data['post_id'] );
+
+					// record in group
+					self::ipn_debug( 'Starting to give Group access: User ID[' . absint( self::$ipn_transaction_data['user_id'] ) . '] Group[' . self::$ipn_transaction_data['group_id'] . ']' );
+					ld_update_group_access( absint( self::$ipn_transaction_data['user_id'] ), self::$ipn_transaction_data['group_id'] );
+				}
+			}
 		}
 
-		ld_ipn_debug( 'Course Title: ' . $course_title );
-
-		$post_id = wp_insert_post(
-			array(
-				'post_title'  => "Course {$course_title} Purchased By {$email}",
-				'post_type'   => 'sfwd-transactions',
-				'post_status' => 'publish',
-				'post_author' => $user_id,
-			)
-		);
-		ld_ipn_debug( 'Created Transaction. Post Id: ' . $post_id );
-
-		foreach ( $transaction as $k => $v ) {
-			update_post_meta( $post_id, $k, $v );
-		}
+		// End of functions.
 	}
-
-	ld_ipn_debug( 'IPN Processing Completed Successfully.' );
-	$notifyOnValid = $notify_on_valid_ipn != '' ? $notify_on_valid_ipn : '0';
-
-} else {
-
-	/*
-	 An Invalid IPN *may* be caused by a fraudulent transaction attempt. It's a good idea to have a developer or sys admin
-	manually investigate any invalid IPN.*/
-	ld_ipn_debug( 'Invalid IPN. Shutting Down Processing.' );
 }
-
-// we're done here
+LearnDash_PayPal_IPN::ipn_process();

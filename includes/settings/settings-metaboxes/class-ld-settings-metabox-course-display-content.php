@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'LearnDash_Settings_Metabox_Course_Display_Content' ) ) ) {
 	/**
 	 * Class to create the settings section.
@@ -126,20 +130,54 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 				'order' 	=>	LearnDash_Settings_Section::get_section_setting_select_option_label( 'LearnDash_Settings_Section_Lessons_Display_Order', 'order' ),
 			);
 
+			$select_cert_options = array();
+			$select_cert_query_data_json = '';
+
+			/** This filter is documented in includes/class-ld-lms.php */
 			if ( ( defined( 'LEARNDASH_SELECT2_LIB' ) ) && ( true === apply_filters( 'learndash_select2_lib', LEARNDASH_SELECT2_LIB ) ) ) {
 				$select_cert_options_default = array(
 					'-1' => esc_html__( 'Search or select a certificate…', 'learndash' ),
 				);
+
+				if ( ! empty( $this->setting_option_values['certificate'] ) ) {
+					$cert_post = get_post( absint( $this->setting_option_values['certificate'] ) );
+					if ( ( $cert_post ) && ( is_a( $cert_post, 'WP_Post' ) ) ) {
+						$select_cert_options[ $cert_post->ID ] = get_the_title( $cert_post->ID );
+					}
+				}
+
+				/** This filter is includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
+				if ( ( defined( 'LEARNDASH_SELECT2_LIB_AJAX_FETCH' ) ) && ( true === apply_filters( 'learndash_select2_lib_ajax_fetch', LEARNDASH_SELECT2_LIB_AJAX_FETCH ) ) ) {
+					$select_cert_query_data_json = $this->build_settings_select2_lib_ajax_fetch_json(
+						array(
+							'query_args' => array(
+								'post_type' => learndash_get_post_type_slug( 'certificate' ),
+							),
+							'settings_element' => array(
+								'settings_parent_class' => get_parent_class( __CLASS__ ),
+								'settings_class'  => __CLASS__,
+								'settings_field'  => 'certificate',
+							),
+						)
+					);
+				} else {
+					$select_cert_options = $sfwd_lms->select_a_certificate();
+				}
 			} else {
 				$select_cert_options_default = array(
 					'' => esc_html__( 'Select Certificate', 'learndash' ),
 				);
-			}
-			$select_cert_options = $sfwd_lms->select_a_certificate();
-			if ( ( is_array( $select_cert_options ) ) && ( ! empty( $select_cert_options ) ) ) {
-				$select_cert_options = $select_cert_options_default + $select_cert_options;
-			} else {
-				$select_cert_options = $select_cert_options_default;
+
+				$select_cert_options_default = array(
+					'' => esc_html__( 'Select Certificate', 'learndash' ),
+				);
+				$select_cert_options = $sfwd_lms->select_a_certificate();
+				if ( ( is_array( $select_cert_options ) ) && ( ! empty( $select_cert_options ) ) ) {
+					$select_cert_options = $select_cert_options_default + $select_cert_options;
+				} else {
+					$select_cert_options = $select_cert_options_default;
+				}
+				$select_cert_options_default = '';
 			}
 
 			$this->setting_option_fields = array(
@@ -192,6 +230,10 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 					'default' => '',
 					'value'   => $this->setting_option_values['certificate'],
 					'options' => $select_cert_options,
+					'placeholder' => $select_cert_options_default,
+					'attrs'   => array(
+						'data-select2-query-data' => $select_cert_query_data_json
+					)
 				),
 				'course_disable_content_table'  => array(
 					'name'      => 'course_disable_content_table',
@@ -336,6 +378,7 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 				unset( $this->setting_option_fields['course_lesson_order'] );
 			}
 
+			/** This filter is documented in includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
 			$this->setting_option_fields = apply_filters( 'learndash_settings_fields', $this->setting_option_fields, $this->settings_metabox_key );
 
 			parent::load_settings_fields();
@@ -430,7 +473,8 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 					$settings_values['course_lesson_orderby'] = '';
 					$settings_values['course_lesson_order']   = '';
 				}
-
+				
+				/** This filter is documented in includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
 				apply_filters( 'learndash_settings_save_values', $settings_values, $this->settings_metabox_key );
 			}
 

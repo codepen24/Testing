@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDash_Settings_Page_Course_Builder_Single' ) ) ) {
 	/**
 	 * Class to create the settings page.
@@ -52,8 +56,10 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 		 */
 		public function get_admin_page_form( $start = true ) {
 			if ( true === $start ) {
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
 				return apply_filters( 'learndash_admin_page_form', '<form id="learndash-settings-page-form" method="post">', $start );
 			} else {
+				/** This filter is documented in includes/settings/class-ld-settings-pages.php */
 				return apply_filters( 'learndash_admin_page_form', '</form>', $start );
 			}
 		}
@@ -70,7 +76,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 					if ( ( ! isset( $_GET['course_id'] ) ) || ( empty( $_GET['course_id'] ) ) ) {
 						// ...then redirect back to the courses listin screen.
 						$courses_list_url = add_query_arg( 'post_type', 'sfwd-courses', admin_url( 'edit.php' ) );
-						wp_redirect( $courses_list_url );
+						learndash_safe_redirect( $courses_list_url );
 					} else {
 						$this->cb = Learndash_Admin_Metabox_Course_Builder::add_instance( 'Learndash_Admin_Metabox_Course_Builder' );
 						$this->save_cb_metabox();
@@ -130,6 +136,7 @@ if ( ( class_exists( 'LearnDash_Settings_Page' ) ) && ( ! class_exists( 'LearnDa
 
 			if ( ( 'edit.php' === $pagenow ) && ( 'sfwd-courses' === $typenow ) && ( is_a( $course_post, 'WP_Post' ) ) ) {
 				if ( ( LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Courses_Builder', 'enabled' ) == 'yes' ) && ( ! isset( $row_actions['ld-course-builder'] ) ) ) {
+					/** This filter is documented in includes/admin/classes-posts-listings/class-learndash-admin-courses-listing.php */
 					if ( apply_filters( 'learndash_show_course_builder_row_actions', true, $course_post ) === true ) {
 						$course_label = sprintf(
 							// translators: placeholder: Course.

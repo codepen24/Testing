@@ -91,6 +91,8 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 */
 		public function render_block( $attributes = array() ) {
 
+			$attributes = $this->preprocess_block_attributes( $attributes );
+
 			$attributes_meta = array();
 			if ( isset( $attributes['meta'] ) ) {
 				$attributes_meta = $attributes['meta'];
@@ -112,6 +114,14 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 						$types[] = 'registered';
 					}
 					unset( $attributes['registered_show'] );
+				}
+
+				if ( isset( $attributes['registered_show_thumbnail'] ) ) {
+					if ( true === $attributes['registered_show_thumbnail'] ) {
+						$attributes['registered_show_thumbnail'] = 'true';
+					} else {
+						$attributes['registered_show_thumbnail'] = 'false';
+					}
 				}
 
 				if ( isset( $attributes['progress_show'] ) ) {
@@ -163,6 +173,9 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 
 					$shortcode_params_str = '[' . $this->shortcode_slug . ' ' . $shortcode_params_str . ']';
 					$shortcode_out = do_shortcode( $shortcode_params_str );
+					if ( empty( $shortcode_out ) ) {
+						$shortcode_out = '[' . $this->shortcode_slug . '] placholder output.';
+					}
 
 					// This is mainly to protect against emty returns with the Gutenberg ServerSideRender function.
 					return $this->render_block_wrap( $shortcode_out );
@@ -192,6 +205,14 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 				}
 				if ( isset( $attributes['preview_user_id'] ) ) {
 					unset( $attributes['preview_user_id'] );
+				}
+
+				if ( isset( $attributes['registered_show_thumbnail'] ) ) {
+					if ( true === $attributes['registered_show_thumbnail'] ) {
+						$attributes['registered_show_thumbnail'] = 'true';
+					} else {
+						$attributes['registered_show_thumbnail'] = 'false';
+					}
 				}
 
 				if ( ! isset( $attributes['type'] ) ) {

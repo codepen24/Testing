@@ -675,18 +675,32 @@ if ( ! class_exists( 'LDLMS_Course_Steps' ) ) {
 		function set_step_to_course_order( $steps = array() ) {
 			global $wpdb;
 			
-			if ( !empty( $steps ) ) {
+			if ( ! empty( $steps ) ) {
  				$sql_str = '';
 				
-				foreach( $steps as $step_order => $step_id ) {
+				foreach ( $steps as $step_order => $step_id ) {
 					$step_order += 1;
-					$wpdb->update( 
-						$wpdb->posts,
-						array( 'menu_order' => $step_order ),
-						array( 'ID' => $step_id ),
-						array( '%d' ),
-						array( '%d' )
-					);
+
+					if ( ( defined( 'LEARNDASH_BUILDER_STEPS_UPDATE_POST' ) ) && ( true === LEARNDASH_BUILDER_STEPS_UPDATE_POST ) ) {
+						$edit_post = array(
+							'ID'         => $step_id,
+							'menu_order' => $step_order,
+						);
+						wp_update_post( $edit_post );
+
+					} else {
+						$update_ret = $wpdb->update(
+							$wpdb->posts,
+							array( 'menu_order' => $step_order ),
+							array( 'ID' => $step_id ),
+							array( '%d' ),
+							array( '%d' )
+						);
+
+						if ( ( $update_ret ) && ( ! is_wp_error( $update_ret ) ) ) {
+							clean_post_cache( $step_id );
+						}
+					}
 				}
 			}
 		}

@@ -102,13 +102,17 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 * @return none The output is echoed.
 		 */
 		public function render_block( $attributes = array() ) {
+			$attributes = $this->preprocess_block_attributes( $attributes );
 
 			if ( is_user_logged_in() ) {
-
+				/** This filter is documented in includes/gutenberg/blocks/ld-course-list/index.php */
 				$attributes           = apply_filters( 'learndash_block_markers_shortcode_atts', $attributes, $this->shortcode_slug, $this->block_slug, '' );
 				$shortcode_params_str = $this->prepare_course_list_atts_to_param( $attributes );
 				$shortcode_params_str = '[' . $this->shortcode_slug . ' ' . $shortcode_params_str . ']';
 				$shortcode_out        = do_shortcode( $shortcode_params_str );
+				if ( empty( $shortcode_out ) ) {
+					$shortcode_out = '[' . $this->shortcode_slug . '] placholder output.';
+				}
 
 				// This is mainly to protect against emty returns with the Gutenberg ServerSideRender function.
 				return $this->render_block_wrap( $shortcode_out );

@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 	/**
 	 * Absract for LearnDash Settings Pages.
@@ -155,6 +159,12 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 		 * Action hook to handle admin_init processing from WP.
 		 */
 		public function admin_init() {
+
+			/**
+			 * Fires on LearnDash settings page init.
+			 *
+			 * @param string $setting_page_id Settings page ID.
+			 */
 			do_action( 'learndash_settings_page_init', $this->settings_page_id );
 
 			if ( true === $this->show_submit_meta ) {
@@ -224,6 +234,11 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 				wp_enqueue_script( 'wp-lists' );
 				wp_enqueue_script( 'postbox' );
 
+				/**
+				 * Fires on adding setting metaboxes.
+				 *
+				 * @param string $setting_screen_id Settings screen ID.
+				 */
 				do_action( 'learndash_add_meta_boxes', $this->settings_screen_id );
 				add_action( 'admin_footer-' . $this->settings_screen_id, array( $this, 'load_footer_scripts' ) );
 				add_filter( 'screen_layout_columns', array( $this, 'screen_layout_column' ), 10, 2 );
@@ -269,6 +284,12 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 				delete_user_meta( get_current_user_id(), 'meta-box-order_' . $this->settings_screen_id );
 			}
 
+			/**
+			 * Fires on LearnDash settings page load.
+			 *
+			 * @param string $setting_screen_id Settings screen ID.
+			 * @param string $setting_page_id   Settings page ID.
+			 */
 			do_action( 'learndash-settings-page-load', $this->settings_screen_id, $this->settings_page_id );
 		}
 
@@ -313,7 +334,7 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 			?>
 			<script type="text/javascript">
 				//<![CDATA[
-				jQuery(document).ready( function($) {
+				jQuery( function($) {
 					// toggle
 					$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 					postboxes.add_postbox_toggles( '<?php echo esc_attr( $this->settings_screen_id ); ?>' );
@@ -338,6 +359,13 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 				//]]>
 			</script>
 			<?php
+
+			/**
+			 * Fires after settings page footer scripts.
+			 *
+			 * @param string $setting_screen_id Settings screen ID.
+			 * @param string $setting_page_id   Settings page ID.
+			 */
 			do_action( 'learndash_settings_page_footer_scripts', $this->settings_screen_id, $this->settings_page_id );
 		}
 
@@ -351,13 +379,45 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 				<div class="wrap learndash-settings-page-wrap">
 
 					<?php settings_errors(); ?>
-					<?php do_action( 'learndash_settings_page_before_title', $this->settings_screen_id, $this->settings_page_id ); ?>
+					<?php
+					/**
+					 * Fires before the settings page title.
+					 *
+					 * @param string $setting_screen_id Settings screen ID.
+					 * @param string $setting_page_id   Settings page ID.
+					 */
+					do_action( 'learndash_settings_page_before_title', $this->settings_screen_id, $this->settings_page_id );
+					?>
 					<?php echo $this->get_admin_page_title(); ?>
-					<?php do_action( 'learndash_settings_page_after_title', $this->settings_screen_id, $this->settings_page_id ); ?>
+					<?php
+					/**
+					 * Fires after the settings page title.
+					 *
+					 * @param string $setting_screen_id Settings screen ID.
+					 * @param string $setting_page_id   Settings page ID.
+					 */
+					do_action( 'learndash_settings_page_after_title', $this->settings_screen_id, $this->settings_page_id );
+					?>
 
-					<?php do_action( 'learndash_settings_page_before_form', $this->settings_screen_id, $this->settings_page_id ); ?>
+					<?php
+					/**
+					 * Fires before the settings page form.
+					 *
+					 * @param string $setting_screen_id Settings screen ID.
+					 * @param string $setting_page_id   Settings page ID.
+					 */
+					do_action( 'learndash_settings_page_before_form', $this->settings_screen_id, $this->settings_page_id );
+					?>
 					<?php echo $this->get_admin_page_form( true ); ?>
-					<?php do_action( 'learndash_settings_page_inside_form_top', $this->settings_screen_id, $this->settings_page_id ); ?>
+					<?php
+					/**
+					 * Fires inside settings page form in the top.
+					 *
+					 * @param string $setting_screen_id Settings screen ID.
+					 * @param string $setting_page_id   Settings page ID.
+					 */
+					do_action( 'learndash_settings_page_inside_form_top', $this->settings_screen_id, $this->settings_page_id );
+					?>
 
 						<?php settings_fields( $this->settings_page_id ); ?>
 						<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
@@ -369,17 +429,49 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 									<?php do_meta_boxes( $this->settings_screen_id, 'side', null ); ?>
 								</div>
 								<div id="postbox-container-2" class="postbox-container">
-									<?php do_action( 'learndash_settings_page_before_metaboxes', $this->settings_screen_id, $this->settings_page_id ); ?>
+									<?php
+									/**
+									 * Fires before the settings page meta boxes.
+									 *
+									 * @param string $setting_screen_id Settings screen ID.
+									 * @param string $setting_page_id   Settings page ID.
+									 */
+									do_action( 'learndash_settings_page_before_metaboxes', $this->settings_screen_id, $this->settings_page_id );
+									?>
 									<?php do_meta_boxes( $this->settings_screen_id, 'normal', null ); ?>
 									<?php do_meta_boxes( $this->settings_screen_id, 'advanced', null ); ?>
-									<?php do_action( 'learndash_settings_page_after_metaboxes', $this->settings_screen_id, $this->settings_page_id ); ?>
+									<?php
+									/**
+									 * Fires after the settings page meta boxes.
+									 *
+									 * @param string $setting_screen_id Settings screen ID.
+									 * @param string $setting_page_id   Settings page ID.
+									 */
+									do_action( 'learndash_settings_page_after_metaboxes', $this->settings_screen_id, $this->settings_page_id );
+									?>
 								</div>
 							</div>
 							<br class="clear">
 						</div>
-					<?php do_action( 'learndash_settings_page_inside_form_bottom', $this->settings_screen_id, $this->settings_page_id ); ?>
+					<?php
+					/**
+					 * Fires inside settings page form at the bottom.
+					 *
+					 * @param string $setting_screen_id Settings screen ID.
+					 * @param string $setting_page_id   Settings page ID.
+					 */
+					do_action( 'learndash_settings_page_inside_form_bottom', $this->settings_screen_id, $this->settings_page_id );
+					?>
 					<?php echo $this->get_admin_page_form( false ); ?>
-					<?php do_action( 'learndash_settings_page_after_form', $this->settings_screen_id, $this->settings_page_id ); ?>
+					<?php
+					/**
+					 * Fires after the settings page form.
+					 *
+					 * @param string $setting_screen_id Settings screen ID.
+					 * @param string $setting_page_id   Settings page ID.
+					 */
+					do_action( 'learndash_settings_page_after_form', $this->settings_screen_id, $this->settings_page_id );
+					?>
 				</div>
 				<?php
 
@@ -411,11 +503,16 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 		 */
 		public function get_admin_page_title() {
 			/**
-			 * Control if page title should be displayed.
+			 * Filters whether the admin settings page title should be displayed or not.
 			 *
-			 * @param array $flag Defines if page title should be displayed.
+			 * @param array $flag Whether to display page title or not.
 			 */
 			if ( true === apply_filters( 'learndash_admin_page_title_should_display', false ) ) {
+				/**
+				 * Filters admin settings page title HTML output.
+				 *
+				 * @param string $title_output The admin settings title page.
+				 */
 				return apply_filters( 'learndash_admin_page_title', '<h1>' . esc_html( get_admin_page_title() ) . '</h1>' );
 			} else {
 				return '<h1 class="learndash-empty-page-title"></h1>';
@@ -433,8 +530,15 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 		public function get_admin_page_form( $start = true ) {
 			if ( true === $this->settings_form_wrap ) {
 				if ( true === $start ) {
+					/**
+					 * Filters the HTML output for admin page form.
+					 *
+					 * @param string  $form_output The HTML output for admin page form.
+					 * @param boolean $start       A flag to indicate whether it is start or end of the form.
+					 */
 					return apply_filters( 'learndash_admin_page_form', '<form id="learndash-settings-page-form" method="post" action="options.php">', $start );
 				} else {
+					/** This filter is documented in includes/settings/class-ld-settings-pages.php  */
 					return apply_filters( 'learndash_admin_page_form', '</form>', $start );
 				}
 			}
@@ -444,9 +548,14 @@ if ( ! class_exists( 'LearnDash_Settings_Page' ) ) {
 	}
 }
 
+/**
+ * Enqueues the settings page styles and scripts.
+ *
+ * @global array $learndash_assets_loaded An array of loaded assets.
+ */
 function learndash_admin_settings_page_assets() {
 	global $learndash_assets_loaded;
-
+	/** This filter is documented in includes/class-ld-lms.php */
 	if ( ( defined( 'LEARNDASH_SELECT2_LIB' ) ) && ( true === apply_filters( 'learndash_select2_lib', LEARNDASH_SELECT2_LIB ) ) ) {
 		if ( ! isset( $learndash_assets_loaded['styles']['learndash-select2-jquery-style'] ) ) {
 			wp_enqueue_style(
@@ -455,14 +564,14 @@ function learndash_admin_settings_page_assets() {
 				array(),
 				LEARNDASH_SCRIPT_VERSION_TOKEN
 			);
-			//wp_style_add_data( 'learndash-select2-jquery-style', 'rtl', 'replace' );
+			// wp_style_add_data( 'learndash-select2-jquery-style', 'rtl', 'replace' );
 			$learndash_assets_loaded['styles']['learndash-select2-jquery-style'] = __FUNCTION__;
 		}
 
 		if ( ! isset( $learndash_assets_loaded['scripts']['learndash-select2-jquery-script'] ) ) {
 			wp_enqueue_script(
 				'learndash-select2-jquery-script',
-				LEARNDASH_LMS_PLUGIN_URL . 'assets/vendor/select2-jquery/js/select2.min.js',
+				LEARNDASH_LMS_PLUGIN_URL . 'assets/vendor/select2-jquery/js/select2.full.min.js',
 				array( 'jquery' ),
 				LEARNDASH_SCRIPT_VERSION_TOKEN,
 				true
@@ -493,10 +602,7 @@ function learndash_admin_settings_page_assets() {
 		$learndash_assets_loaded['scripts']['learndash-admin-settings-page'] = __FUNCTION__;
 
 		$script_data = array();
-		$script_data = apply_filters( 'learndash_admin_settings_data', $script_data );
-		if ( ( empty( $script_data ) ) || ( ! is_array( $script_data ) ) ) {
-			$script_data = array();
-		}
+		
 		if ( ! isset( $script_data['ajaxurl'] ) ) {
 			$script_data['ajaxurl'] = admin_url( 'admin-ajax.php' );
 		}
@@ -504,7 +610,128 @@ function learndash_admin_settings_page_assets() {
 			$script_data['admin_notice_settings_fields_errors_container'] = '<div id="learndash-settings-fields-notice-errors" class="learndash-settings-fields-notice-errors notice notice-error"><p class="errors-header">' . esc_html__( 'You have errors on the following settings', 'learndash' ) . '</p><ul class="errors-list"></ul></div>';
 		}
 
+		if ( ! isset( $script_data['selec2_language'] ) ) {
+			$script_data['selec2_language'] = array(
+				'loadingMore'    => esc_html__( 'Loading more results…', 'learndash' ),
+				'noResults'      => esc_html__( 'No results found', 'learndash' ),
+				'searching'      => esc_html__( 'Searching…', 'learndash' ),
+				'removeAllItems' => esc_html__( 'Remove all items', 'learndash' ),
+				'removeItem'     => esc_html__( 'Remove item', 'learndash' ),
+			);
+		}
+
+		/**
+		 * Filters admin settings script data.
+		 *
+		 * @param array $script_data An array of script data to be localized.
+		 */
+		$script_data = apply_filters( 'learndash_admin_settings_data', $script_data );
+		if ( ( empty( $script_data ) ) || ( ! is_array( $script_data ) ) ) {
+			$script_data = array();
+		}
+
 		$script_data = array( 'json' => json_encode( $script_data ) );
 		wp_localize_script( 'learndash-admin-settings-page', 'learndash_admin_settings_data', $script_data );
 	}
 }
+
+add_action(
+	'wp_ajax_learndash_settings_select2_query',
+	function() {
+
+		$result_array = array(
+			'items'       => array(),
+			'total_items' => 0,
+			'page'        => 1,
+			'total_pages' => 1,
+		);
+
+		if ( ! current_user_can( 'read' ) ) {
+			echo wp_json_encode( $result_array );
+			wp_die();
+		}
+
+		if ( ( ! isset( $_POST['query_data'] ) ) || ( empty( $_POST['query_data'] ) ) ) {
+			echo wp_json_encode( $result_array );
+			wp_die();
+		}
+
+		$post_query_data = $_POST['query_data'];
+
+		if ( ( ! isset( $post_query_data['nonce'] ) ) || ( empty( $post_query_data['nonce'] ) ) ) {
+			echo wp_json_encode( $result_array );
+			wp_die();
+		}
+
+		$post_query_data_nonce = $post_query_data['nonce'];
+		unset( $post_query_data['nonce'] );
+
+		if ( ( ! isset( $post_query_data['settings_element'] ) ) || ( empty( $post_query_data['settings_element'] ) ) ) {
+			echo wp_json_encode( $result_array );
+			wp_die();
+		}
+
+		$post_query_data_json = wp_json_encode( $post_query_data['settings_element'], JSON_FORCE_OBJECT );
+		if ( ! wp_verify_nonce( $post_query_data_nonce, $post_query_data_json ) ) {
+			echo wp_json_encode( $result_array );
+			wp_die();
+		}
+
+		if ( ( ! isset( $post_query_data['query_args'] ) ) || ( empty( $post_query_data['query_args'] ) ) ) {
+			echo wp_json_encode( $result_array );
+			wp_die();
+		}
+
+		$query_args = $post_query_data['query_args'];
+
+		$query_args['paged'] = 1;
+		if ( isset( $_POST['page'] ) ) {
+			$query_args['paged'] = absint( $_POST['page'] );
+		}
+		if ( empty( $query_args['paged'] ) ) {
+			$query_args['paged'] = 1;
+		}
+
+		if ( ( isset( $_POST['search'] ) ) && ( ! empty( $_POST['search'] ) ) ) {
+			$query_args['s'] = esc_attr( $_POST['search'] );
+		}
+
+		if ( isset( $query_args['posts_per_page'] ) ) {
+			$query_args['posts_per_page'] = absint( $query_args['posts_per_page'] );
+		}
+		if ( empty( $query_args['posts_per_page'] ) ) {
+			$query_args['posts_per_page'] = 10;
+		}
+
+		if ( ! isset( $query_args['order'] ) ) {
+			$query_args['order'] = 'ASC';
+		}
+		if ( ! isset( $query_args['orderby'] ) ) {
+			$query_args['orderby'] = 'title';
+		}
+
+		$query_results = new WP_Query( $query_args );
+		if ( ( $query_results ) && ( is_a( $query_results, 'WP_Query' ) ) ) {
+			$result_array['items'] = array();
+			if ( ( property_exists( $query_results, 'posts' ) ) && ( is_array( $query_results->posts ) ) && ( ! empty( $query_results->posts ) ) ) {
+				foreach ( $query_results->posts as $item ) {
+					$result_array['items'][] = array(
+						'id'   => $item->ID,
+						'text' => $item->post_title,
+					);
+				}
+			}
+			if ( property_exists( $query_results, 'found_posts' ) ) {
+				$result_array['total_items'] = absint( $query_results->found_posts );
+			}
+			if ( property_exists( $query_results, 'max_num_pages' ) ) {
+				$result_array['total_pages'] = absint( $query_results->max_num_pages );
+			}
+			$result_array['page'] = absint( $query_args['paged'] );
+		}
+
+		echo wp_json_encode( $result_array );
+		wp_die();
+	},
+	10
+);

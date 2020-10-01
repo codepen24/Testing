@@ -6,6 +6,10 @@
  * @subpackage admin
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'Learndash_Admin_Builder' ) ) {
 	/**
 	 * Class for LearnDash Admin Builder.
@@ -368,10 +372,10 @@ if ( ! class_exists( 'Learndash_Admin_Builder' ) ) {
 }
 
 if ( ( defined( 'LEARNDASH_COURSE_BUILDER' ) ) && ( LEARNDASH_COURSE_BUILDER === true ) ) {
-	require_once LEARNDASH_LMS_PLUGIN_DIR . '/includes/admin/classes-builders/class-learndash-admin-course-builder-metabox.php';
+	require_once LEARNDASH_LMS_PLUGIN_DIR . 'includes/admin/classes-builders/class-learndash-admin-course-builder-metabox.php';
 }
 if ( ( defined( 'LEARNDASH_QUIZ_BUILDER' ) ) && ( LEARNDASH_QUIZ_BUILDER === true ) ) {
-	require_once LEARNDASH_LMS_PLUGIN_DIR . '/includes/admin/classes-builders/class-learndash-admin-quiz-builder-metabox.php';
+	require_once LEARNDASH_LMS_PLUGIN_DIR . 'includes/admin/classes-builders/class-learndash-admin-quiz-builder-metabox.php';
 }
 
 add_action(
@@ -405,26 +409,6 @@ add_action(
 		}
 		echo json_encode( array() );
 		wp_die();
-
-		/*
-		if ( ( isset( $_POST['builder_data'] ) ) && ( ! empty( $_POST['builder_data'] ) ) ) {
-			if ( ( isset( $_POST['builder_data']['builder_class'] ) ) && ( ! empty( $_POST['builder_data']['builder_class'] ) ) ) {
-				$builder_class    = esc_attr( $_POST['builder_data']['builder_class'] );
-				$builder_instance = $builder_class::add_instance();
-				if ( is_a( $builder_instance, $builder_class ) ) {
-					if ( ( isset( $_POST['builder_data']['builder_post_id'] ) ) && ( ! empty( $_POST['builder_data']['builder_post_id'] ) ) ) {
-						$builder_instance->builder_init( $_POST['builder_data']['builder_post_id'] );
-						if ( ( isset( $_POST['builder_query_args'] ) ) && ( ! empty( $_POST['builder_query_args'] ) ) ) {
-							$builder_instance->learndash_builder_selector_pager( $_POST['builder_query_args'] );
-						}
-					}
-				}
-			}
-		}
-		echo json_encode( array() );
-
-		wp_die();
-		*/
 	}
 );
 
@@ -661,11 +645,6 @@ function learndash_verify_builder_data( $builder_data = array() ) {
 	}
 	$builder_data['builder_class'] = esc_attr( $builder_data['builder_class'] );
 
-	if ( ! is_subclass_of( $builder_data['builder_class'], 'Learndash_Admin_Builder' ) ) {
-		echo wp_json_encode( array() );
-		wp_die();
-	}
-
 	if ( ( ! isset( $builder_data['builder_post_type'] ) ) || ( empty( $builder_data['builder_post_type'] ) ) ) {
 		echo wp_json_encode( array() );
 		wp_die();
@@ -686,7 +665,12 @@ function learndash_verify_builder_data( $builder_data = array() ) {
 	//See nonce field build out in show_builder_box() of this file.
 	//wp_nonce_field( $this->builder_prefix . '_' . $this->builder_post_type . '_' . $this->builder_post_id . '_nonce', $this->builder_prefix . '_nonce' );
 	$nonce_field_value = 'learndash_builder_' . $builder_data['builder_post_type'] . '_' . $builder_data['builder_post_id'] . '_nonce';
-	if ( ! wp_verify_nonce( $builder_data['builder_nonce'], $nonce_field_value ) ) {
+	if ( ( ! isset( $builder_data['builder_nonce'] ) ) || ( ! wp_verify_nonce( $builder_data['builder_nonce'], $nonce_field_value ) ) ) {
+		echo wp_json_encode( array() );
+		wp_die();
+	}
+
+	if ( ! is_subclass_of( $builder_data['builder_class'], 'Learndash_Admin_Builder' ) ) {
 		echo wp_json_encode( array() );
 		wp_die();
 	}

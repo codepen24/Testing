@@ -4,7 +4,7 @@
  * as the [ld_course_resume] shortcode used within LearnDash.
  *
  * @package LearnDash
- * @since 3.2
+ * @since 3.1.4
  */
 
 if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'LearnDash_Gutenberg_Block_Course_Resume' ) ) ) {
@@ -19,7 +19,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		public function __construct() {
 			$this->shortcode_slug = 'ld_course_resume';
 			$this->block_slug = 'ld-course-resume';
-			$this->self_closing = false;
+			$this->self_closing = true;
 
 			$this->block_attributes = array(
 				'course_id' => array(
@@ -50,7 +50,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 					'type' => 'boolean',
 				),
 			);
-			
+
 			$this->init();
 		}
 
@@ -61,13 +61,14 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 * the block rendered content. In the case of this function the rendered output will be for the
 		 * [ld_profile] shortcode.
 		 *
-		 * @since 3.2
+		 * @since 3.1.4
 		 *
 		 * @param array $attributes Shortcode attrbutes.
 		 * @return none The output is echoed.
 		 */
 		public function render_block( $attributes = array() ) {
-			
+			$attributes = $this->preprocess_block_attributes( $attributes );
+
 			if ( is_user_logged_in() ) {
 
 				if ( ( isset( $attributes['example_show'] ) ) && ( ! empty( $attributes['example_show'] ) ) ) {
@@ -135,6 +136,9 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 
 				$shortcode_params_str = '[' . $this->shortcode_slug . ' ' . $shortcode_params_str . ']';
 				$shortcode_out = do_shortcode( $shortcode_params_str );
+				if ( empty( $shortcode_out ) ) {
+					$shortcode_out = '[' . $this->shortcode_slug . '] placholder output.';
+				}
 
 				return $this->render_block_wrap( $shortcode_out );
 			}
@@ -144,7 +148,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		/**
 		 * Called from the LD function learndash_convert_block_markers_shortcode() when parsing the block content.
 		 *
-		 * @since 3.2
+		 * @since 3.1.4
 		 *
 		 * @param array  $attributes The array of attributes parse from the block content.
 		 * @param string $shortcode_slug This will match the related LD shortcode ld_profile, ld_course_list, etc.

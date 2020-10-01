@@ -20,21 +20,23 @@ const {
 	registerBlockType,
 } = wp.blocks;
 
- const {
+const {
     InnerBlocks,
     InspectorControls,
- } = wp.editor;
+} = wp.editor;
 
- const {
+const {
      PanelBody,
      TextControl,
      ToggleControl
- } = wp.components;
+} = wp.components;
+
+const block_title = __('LearnDash Group', 'learndash');
 
 registerBlockType(
     'learndash/ld-group',
     {
-        title: __( 'LearnDash Group', 'learndash' ),
+        title: block_title,
         description: __( 'This block shows the content if the user is enrolled into the Group.', 'learndash'),
         icon: 'groups',
         category: 'learndash-blocks',
@@ -95,6 +97,7 @@ registerBlockType(
 
             const outputBlock = (
                 <div className={className}>
+                    <span class="learndash-inner-header">{block_title}</span>
                     <div className="learndash-block-inner">
                         {ld_block_error_message}
                         <InnerBlocks />

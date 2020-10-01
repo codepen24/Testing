@@ -52,6 +52,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 * @return none The output is echoed.
 		 */
 		public function render_block( $attributes = array() ) {
+			$attributes = $this->preprocess_block_attributes( $attributes );
 
 			/** Here we don't render the button via the shortcode. We can't due to the CSS/JS needed to be loaded
 			 * like for Stripe. So we just show a button and let it go at that.
@@ -91,7 +92,11 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 			$course_price_type = learndash_get_setting( $course_post, 'course_price_type' );
 			if ( ( ! empty( $course_price_type ) ) && ( in_array( $course_price_type, array( 'free', 'paynow', 'subscribe' ) ) ) ) {
 				$button_text = LearnDash_Custom_Label::get_label( 'button_take_this_course' );
-				$shortcode_out = '<a class="btn-join" href="#" id="btn-join">' . $button_text . '</a>';
+				if ( ! empty( $button_text ) ) {
+					$shortcode_out = '<a class="btn-join" href="#" id="btn-join">' . $button_text . '</a>';
+				} else {
+					$shortcode_out = '[' . $this->shortcode_slug . '] placholder output.';
+				}
 
 				return $this->render_block_wrap( $shortcode_out );
 			} else {

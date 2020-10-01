@@ -4,7 +4,7 @@
  * as the [ld_quiz_complete] shortcode used within LearnDash.
  *
  * @package LearnDash
- * @since 3.2
+ * @since 3.1.4
  */
 
 if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'LearnDash_Gutenberg_Block_Quiz_Complete' ) ) ) {
@@ -47,7 +47,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 					'type' => 'boolean',
 				),
 			);
-			
+
 			$this->init();
 		}
 
@@ -58,12 +58,14 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 * the block rendered content. In the case of this function the rendered output will be for the
 		 * [ld_profile] shortcode.
 		 *
-		 * @since 3.2
+		 * @since 3.1.4
 		 *
 		 * @param array $attributes Shortcode attrbutes.
 		 * @return none The output is echoed.
 		 */
 		public function render_block_xxx( $attributes = array() ) {
+			$attributes = $this->preprocess_block_attributes( $attributes );
+
 			if ( is_user_logged_in() ) {
 
 				if ( ( isset( $attributes['example_show'] ) ) && ( ! empty( $attributes['example_show'] ) ) ) {
@@ -136,7 +138,7 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		/**
 		 * Called from the LD function learndash_convert_block_markers_shortcode() when parsing the block content.
 		 *
-		 * @since 3.2
+		 * @since 3.1.4
 		 *
 		 * @param array  $attributes The array of attributes parse from the block content.
 		 * @param string $shortcode_slug This will match the related LD shortcode ld_profile, ld_course_list, etc.

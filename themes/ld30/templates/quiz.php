@@ -34,8 +34,11 @@
  *
  * @package LearnDash\Quiz
  */
-?>
-<?php
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 	return;
 }
@@ -43,9 +46,13 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 <div class="<?php echo esc_attr( learndash_the_wrapper_class() ); ?>">
 <?php
 	/**
-	 * Action to add custom content before the quiz content starts
+	 * Fires before the quiz content starts.
 	 *
-	 * @since 3.0
+	 * @since 3.0.0
+	 *
+	 * @param int $quiz_id Quiz ID.
+	 * @param int $course_id Course ID.
+	 * @param int $user_id   User ID.
 	 */
 	do_action( 'learndash-quiz-before', $quiz_post->ID, $course_id, $user_id );
 
@@ -61,14 +68,29 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 	);
 
 	if ( ! empty( $lesson_progression_enabled ) ) :
-
 		$last_incomplete_step = is_quiz_accessable( null, $quiz_post, true, $course_id );
-		if ( is_a( $last_incomplete_step, 'WP_Post' ) ) {
+		if ( ( $last_incomplete_step ) && ( is_a( $last_incomplete_step, 'WP_Post' ) ) ) {
+			$show_content = false;
+
+			$sub_context = '';
+			if ( 'on' === learndash_get_setting( $last_incomplete_step->ID, 'lesson_video_enabled' ) ) {
+				if ( ! empty( learndash_get_setting( $last_incomplete_step->ID, 'lesson_video_url' ) ) ) {
+					if ( 'BEFORE' === learndash_get_setting( $last_incomplete_step->ID, 'lesson_video_shown' ) ) {
+						if ( ! learndash_video_complete_for_step( $last_incomplete_step->ID, $course_id, $user_id ) ) {
+							$sub_context  = 'video_progression';
+						}
+					}
+				}
+			}
 
 			/**
-			 * Action to add custom content before the quiz progression
+			 * Fires before the quiz progression.
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $quiz_id   Quiz ID.
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-quiz-progression-before', $quiz_post->ID, $course_id, $user_id );
 
@@ -79,14 +101,19 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 						'course_id'     => $course_id,
 						'user_id'       => $user_id,
 						'context'       => 'quiz',
+						'sub_context'   => $sub_context,
 					),
 					true
 				);
 
 			/**
-			 * Action to add custom content after the quiz progress
+			 * Fires after the quiz progress.
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $quiz_id   Quiz ID.
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-quiz-progression-after', $quiz_post->ID, $course_id, $user_id );
 
@@ -114,18 +141,26 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 		if ( $attempts_left ) :
 
 			/**
-			 * Action to add custom content before the actual quiz content (not WP_Editor content)
+			 * Fires before the actual quiz content (not WP_Editor content).
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $quiz_id   Quiz ID.
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-quiz-actual-content-before', $quiz_post->ID, $course_id, $user_id );
 
 			echo $quiz_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Post content
 
 			/**
-			 * Action to add custom content after the actual quiz content (not WP_Editor content)
+			 * Fires after the actual quiz content (not WP_Editor content).
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $quiz_id   Quiz ID.
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-quiz-actual-content-after', $quiz_post->ID, $course_id, $user_id );
 
@@ -136,9 +171,13 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 			 */
 
 			/**
-			 * Action to add custom content before the quiz attempts alert
+			 * Fires before the quiz attempts alert.
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $quiz_id   Quiz ID.
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-quiz-attempts-alert-before', $quiz_post->ID, $course_id, $user_id );
 
@@ -158,9 +197,13 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 			);
 
 			/**
-			 * Action to add custom content after the quiz attempts alert
+			 * Fires after the quiz attempts alert.
 			 *
-			 * @since 3.0
+			 * @since 3.0.0
+			 *
+			 * @param int $quiz_id   Quiz ID.
+			 * @param int $course_id Course ID.
+			 * @param int $user_id   User ID.
 			 */
 			do_action( 'learndash-quiz-attempts-alert-after', $quiz_post->ID, $course_id, $user_id );
 
@@ -168,12 +211,17 @@ if ( ( ! isset( $quiz_post ) ) || ( ! is_a( $quiz_post, 'WP_Post' ) ) ) {
 
 	endif;
 
-	/**
-	 * Action to add custom content before the quiz content starts
-	 *
-	 * @since 3.0
-	 */
-	do_action( 'learndash-quiz-after', $quiz_post->ID, $course_id, $user_id );
-	?>
+/**
+ * Fires before the quiz content starts.
+ *
+ * @since 3.0.0
+ *
+ * @param int $quiz_id   Quiz ID.
+ * @param int $course_id Course ID.
+ * @param int $user_id   User ID.
+ */
+do_action( 'learndash-quiz-after', $quiz_post->ID, $course_id, $user_id );
+learndash_load_login_modal_html();
+?>
 
 </div> <!--/.learndash-wrapper-->

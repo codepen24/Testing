@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'LearnDash_Settings_Quizzes_Email' ) ) ) {
 	/**
 	 * Class to create the Quiz Email Section.
@@ -165,10 +169,10 @@ if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'Lear
 						<ul>
 							<li><span>$userId</span> - ' . esc_html__( 'User-ID', 'learndash' ) . '</li>
 							<li><span>$username</span> - ' . esc_html__( 'Username', 'learndash' ) . '</li>
+							<li><span>$userlogin</span> - ' . esc_html__( 'User Login', 'learndash' ) . '</li>
 							<li><span>$quizname</span> - ' . esc_html__( 'Quiz-Name', 'learndash' ) . '</li>
 							<li><span>$result</span> - ' . esc_html__( 'Result in percent', 'learndash' ) . '</li>
 							<li><span>$points</span> - ' . esc_html__( 'Reached points', 'learndash' ) . '</li>
-							<li><span>$ip</span> - ' . esc_html__( 'IP-address of the user', 'learndash' ) . '</li>
 							<li><span>$categories</span> - ' . esc_html__( 'Category-Overview', 'learndash' ) . '</li>
 						</ul>	
 					</div>',
@@ -188,7 +192,7 @@ if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'Lear
 					'type'      => 'text',
 					'label'     => esc_html__( 'From Name', 'learndash' ),
 					'help_text' => esc_html__( 'This is the name of the sender. If not provided will default to the system email name.', 'learndash' ),
-					'value'     => isset( $this->setting_option_values['admin_mail_from_name'] ) ? $this->setting_option_values['admin_mail_from_name'] : '',
+					'value'     => isset( $this->setting_option_values['user_mail_from_name'] ) ? $this->setting_option_values['user_mail_from_name'] : '',
 				),
 				'user_mail_from_email'  => array(
 					'name'      => 'user_mail_from_email',
@@ -221,11 +225,11 @@ if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'Lear
 						<h4>' . esc_html__( 'Supported variables', 'learndash' ) . ':</h4>
 						<ul>
 							<li><span>$userId</span> - ' . esc_html__( 'User-ID', 'learndash' ) . '</li>
-							<li><span>$username</span> - ' . esc_html__( 'Username', 'learndash' ) . '</li>
+							<li><span>$username</span> - ' . esc_html__( 'User Display Name', 'learndash' ) . '</li>
+							<li><span>$userlogin</span> - ' . esc_html__( 'User Login', 'learndash' ) . '</li>
 							<li><span>$quizname</span> - ' . esc_html__( 'Quiz-Name', 'learndash' ) . '</li>
 							<li><span>$result</span> - ' . esc_html__( 'Result in percent', 'learndash' ) . '</li>
 							<li><span>$points</span> - ' . esc_html__( 'Reached points', 'learndash' ) . '</li>
-							<li><span>$ip</span> - ' . esc_html__( 'IP-address of the user', 'learndash' ) . '</li>
 							<li><span>$categories</span> - ' . esc_html__( 'Category-Overview', 'learndash' ) . '</li>
 						</ul>	
 					</div>',
@@ -241,6 +245,7 @@ if ( ( class_exists( 'LearnDash_Settings_Section' ) ) && ( ! class_exists( 'Lear
 				),
 			);
 
+			/** This filter is documented in includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
 			$this->setting_option_fields = apply_filters( 'learndash_settings_fields', $this->setting_option_fields, $this->settings_section_key );
 
 			parent::load_settings_fields();

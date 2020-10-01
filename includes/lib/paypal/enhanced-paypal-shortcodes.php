@@ -242,6 +242,14 @@ All formatting options work on three button types.
 */
 
 if ( !function_exists('enhanced_paypal_shortcode') ) {
+
+/**
+ * Builds the `paypal` shortcode output.
+ *
+ * @param array $atts An array of shortcode atributes.
+ *
+ * @return string The `paypal` shortcode output.
+ */
 function enhanced_paypal_shortcode($atts) {
 $atts = shortcode_atts(
 	Array(
@@ -319,7 +327,14 @@ $atts = shortcode_atts(
 	if($atts['lc'] == '')
 		$atts['lc'] = $paypal_country;	
 */		
-$button_text = LearnDash_Custom_Label::get_label( 'button_take_this_course' );		
+if ( ( isset( $atts['itemno'] ) ) && ( get_post_type( absint( $atts['itemno'] ) ) === learndash_get_post_type_slug( 'course' ) ) ) {
+	$button_text = LearnDash_Custom_Label::get_label( 'button_take_this_course' );
+} elseif ( ( isset( $atts['itemno'] ) ) && ( get_post_type( absint( $atts['itemno'] ) ) === learndash_get_post_type_slug( 'group' ) ) ) {
+	$button_text = LearnDash_Custom_Label::get_label( 'button_take_this_group' );
+	
+} else {
+	$button_text = LearnDash_Custom_Label::get_label( 'button_take_this_course' );
+}
 
 switch($atts['type']):
 	case "paynow":
@@ -487,8 +502,9 @@ switch($atts['type']):
 break;
 
 case "subscribe":
-	$code = '
-        <div style="';
+	$code = '';
+		/*
+		$code .= <div style="';
         if ($atts['textalign']) { 
 			$code.='text-align: '.$atts['textalign'].';'; 
 		}
@@ -524,11 +540,12 @@ case "subscribe":
         } else {
                $code.='margin-bottom: 10px;';
         }      
+		*/
 		$paypalUrl = "https://www.paypal.com/cgi-bin/webscr";
 		if ( $atts['sandbox'] == 1 ) {
 			$paypalUrl = "https://www.sandbox.paypal.com/cgi-bin/webscr";
 		}		
-        $code.='"><form name="subscribewithpaypal" action="'.$paypalUrl.'" method="post">
+        $code.='<form name="subscribewithpaypal" action="' . esc_url( $paypalUrl ). '" method="post">
         <input type="hidden" name="cmd" value="_xclick-subscriptions" />
 
 		<input type="image" src="https://www.paypal.com/en_US/i/scr/pixel.gif" border="0" alt="" width="1" height="1" class="ppalholder">';
@@ -563,6 +580,10 @@ case "subscribe":
         if ($atts['amount']) {
 			$code.='<input type="hidden" name="amount" value="'.$atts['amount'].'">';
         }
+
+		if ( $atts['custom'] ) {
+			$code.='<input type="hidden" name="custom" value="'.$atts['custom'].'">';
+		}
 
         if ($atts['noshipping'] >-1 ) {
 			$code.='<input type="hidden" name="no_shipping" value="'.$atts['noshipping'].'" />';
@@ -681,7 +702,8 @@ case "subscribe":
             $code.='<script src="'.$atts['scriptcode'].'" type="text/javascript"></script>';
         }
 
-		$code.='</form></div>';
+		$code.='</form>';
+		//$code.='</div>';
 break;	
 
 case "hosted":	
@@ -881,6 +903,12 @@ $code = '<div style="';
        </form></div>';
 
 endswitch;
+/**
+ * Filters paypal payment button HTML output.
+ *
+ * @param string $paypal_button The HTML output of paypal button
+ * @param array  $button_data   An array of paypal payment button data like output and attributes.
+ */
 return apply_filters('learndash_paypal_payment_button', $code, array('code' => $code, 'atts' => $atts)) ;
 }
 }

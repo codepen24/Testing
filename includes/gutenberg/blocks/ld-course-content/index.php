@@ -58,6 +58,8 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 		 */
 		public function render_block( $attributes = array() ) {
 
+			$attributes = $this->preprocess_block_attributes( $attributes );
+
 			$attributes_meta = array();
 			if ( isset( $attributes['meta'] ) ) {
 				$attributes_meta = $attributes['meta'];
@@ -114,6 +116,9 @@ if ( ( class_exists( 'LearnDash_Gutenberg_Block' ) ) && ( ! class_exists( 'Learn
 
 				$shortcode_params_str = '[' . $this->shortcode_slug . ' ' . $shortcode_params_str . ']';
 				$shortcode_out = do_shortcode( $shortcode_params_str );
+				if ( ( empty( $shortcode_out ) ) || ( '<div class="learndash user_has_no_access" id="learndash_post_29"></div>' === $shortcode_out ) ) {
+					$shortcode_out = '[' . $this->shortcode_slug . '] placholder output.';
+				}
 
 				return $this->render_block_wrap( $shortcode_out );
 			}

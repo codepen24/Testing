@@ -1,4 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Shortcodes_Section' ) ) && ( !class_exists( 'LearnDash_Shortcodes_Section_learndash_course_progress' ) ) ) {
 	class LearnDash_Shortcodes_Section_learndash_course_progress extends LearnDash_Shortcodes_Section {
 
@@ -6,9 +10,20 @@ if ( ( class_exists( 'LearnDash_Shortcodes_Section' ) ) && ( !class_exists( 'Lea
 			$this->fields_args = $fields_args;
 			
 			$this->shortcodes_section_key 			= 	'learndash_course_progress';
-			$this->shortcodes_section_title 		= 	sprintf( esc_html_x( '%s Progress', 'placeholder: Course', 'learndash' ), LearnDash_Custom_Label::get_label( 'course' ) );
+			$this->shortcodes_section_title 		= 	sprintf(
+				// translators: placeholder: Course.
+				esc_html_x( '%s Progress', 'placeholder: Course', 'learndash' ),
+				LearnDash_Custom_Label::get_label( 'course' )
+			);
 			$this->shortcodes_section_type			=	1;
-			$this->shortcodes_section_description	=	sprintf( esc_html_x( 'This shortcode displays users progress bar for the %1$s in any %2$s/%3$s/%4$s pages.', 'placeholders: course, course, lesson, quiz', 'learndash' ), learndash_get_custom_label_lower( 'course' ), learndash_get_custom_label_lower( 'course' ), learndash_get_custom_label_lower( 'lesson' ), learndash_get_custom_label_lower( 'quiz' ) );
+			$this->shortcodes_section_description	=	sprintf(
+				// translators: placeholders: course, course, lesson, quiz.
+				esc_html_x( 'This shortcode displays users progress bar for the %1$s in any %2$s/%3$s/%4$s pages.', 'placeholders: course, course, lesson, quiz', 'learndash' ),
+				learndash_get_custom_label_lower( 'course' ),
+				learndash_get_custom_label_lower( 'course' ),
+				learndash_get_custom_label_lower( 'lesson' ),
+				learndash_get_custom_label_lower( 'quiz' )
+			);
 						
 			parent::__construct(); 
 		}
@@ -39,7 +54,8 @@ if ( ( class_exists( 'LearnDash_Shortcodes_Section' ) ) && ( !class_exists( 'Lea
 				$this->shortcodes_option_fields['course_id']['required'] = 'required';	
 				$this->shortcodes_option_fields['course_id']['help_text'] =	sprintf( esc_html_x( 'Enter single %s ID', 'placeholders: Course', 'learndash' ), LearnDash_Custom_Label::get_label( 'course' ) );
 			} 
-		
+
+			/** This filter is documented in includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
 			$this->shortcodes_option_fields = apply_filters( 'learndash_settings_fields', $this->shortcodes_option_fields, $this->shortcodes_section_key );
 			
 			parent::init_shortcodes_section_fields();

@@ -6,6 +6,10 @@
  * @subpackage Settings
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'LearnDash_Settings_Metabox_Topic_Access_Settings' ) ) ) {
 	/**
 	 * Class to create the settings section.
@@ -86,7 +90,10 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 		public function load_settings_fields() {
 			global $sfwd_lms;
 
-			$select_course_options = $sfwd_lms->select_a_course();
+			$select_course_options         = array();
+			$select_course_query_data_json = '';
+
+			/** This filter is documented in includes/class-ld-lms.php */
 			if ( ( defined( 'LEARNDASH_SELECT2_LIB' ) ) && ( true === apply_filters( 'learndash_select2_lib', LEARNDASH_SELECT2_LIB ) ) ) {
 				$select_course_options_default = array(
 					'-1' => sprintf(
@@ -95,6 +102,31 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						learndash_get_custom_label( 'course' )
 					),
 				);
+
+				if ( ! empty( $this->setting_option_values['course'] ) ) {
+					$course_post = get_post( absint( $this->setting_option_values['course'] ) );
+					if ( ( $course_post ) && ( is_a( $course_post, 'WP_Post' ) ) ) {
+						$select_course_options[ $course_post->ID ] = get_the_title( $course_post->ID );
+					}
+				}
+
+				/** This filter is includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
+				if ( ( defined( 'LEARNDASH_SELECT2_LIB_AJAX_FETCH' ) ) && ( true === apply_filters( 'learndash_select2_lib_ajax_fetch', LEARNDASH_SELECT2_LIB_AJAX_FETCH ) ) ) {
+					$select_course_query_data_json = $this->build_settings_select2_lib_ajax_fetch_json(
+						array(
+							'query_args'       => array(
+								'post_type'      => learndash_get_post_type_slug( 'course' ),
+							),
+							'settings_element' => array(
+								'settings_parent_class' => get_parent_class( __CLASS__ ),
+								'settings_class'        => __CLASS__,
+								'settings_field'        => 'course',
+							),
+						)
+					);
+				} else {
+					$select_course_options = $sfwd_lms->select_a_course();
+				}
 			} else {
 				$select_course_options_default = array(
 					'' => sprintf(
@@ -103,9 +135,21 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						learndash_get_custom_label( 'course' )
 					),
 				);
+				$select_course_options = $sfwd_lms->select_a_course();
+				if ( ( is_array( $select_course_options ) ) && ( ! empty( $select_course_options ) ) ) {
+					$select_course_options = $select_course_options_default + $select_course_options;
+				} else {
+					$select_course_options = $select_course_options_default;
+				}
+				$select_course_options_default = '';
 			}
-			$select_course_options = $select_course_options_default + $select_course_options;
 
+			$select_lesson_options = array();
+			if ( ( isset( $this->setting_option_values['course'] ) ) && ( ! empty( $this->setting_option_values['course'] ) ) ) {
+				$select_lesson_options = $sfwd_lms->select_a_lesson( absint( $this->setting_option_values['course'] ) );
+			}
+
+			/** This filter is documented in includes/class-ld-lms.php */
 			if ( ( defined( 'LEARNDASH_SELECT2_LIB' ) ) && ( true === apply_filters( 'learndash_select2_lib', LEARNDASH_SELECT2_LIB ) ) ) {
 				$select_lesson_options_default = array(
 					'-1' => sprintf(
@@ -122,22 +166,22 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						learndash_get_custom_label( 'lesson' )
 					),
 				);
-			}
 
-			$select_lesson_options = array();
-			if ( ( isset( $this->setting_option_values['course'] ) ) && ( ! empty( $this->setting_option_values['course'] ) ) ) {
-				$select_lesson_options = $sfwd_lms->select_a_lesson( absint( $this->setting_option_values['course'] ) );
-				if ( ( is_array( $select_lesson_options ) ) && ( ! empty( $select_lesson_options ) ) ) {
-					if ( isset( $select_lesson_options[0] ) ) {
-						unset( $select_lesson_options[0] );
+				$select_lesson_options = array();
+				if ( ( isset( $this->setting_option_values['course'] ) ) && ( ! empty( $this->setting_option_values['course'] ) ) ) {
+					$select_lesson_options = $sfwd_lms->select_a_lesson( absint( $this->setting_option_values['course'] ) );
+					if ( ( is_array( $select_lesson_options ) ) && ( ! empty( $select_lesson_options ) ) ) {
+						if ( isset( $select_lesson_options[0] ) ) {
+							unset( $select_lesson_options[0] );
+						}
+
+						$select_lesson_options = $select_lesson_options_default + $select_lesson_options;
+					} else {
+						$select_lesson_options = $select_lesson_options_default;
 					}
-
-					$select_lesson_options = $select_lesson_options_default + $select_lesson_options;
 				} else {
 					$select_lesson_options = $select_lesson_options_default;
 				}
-			} else {
-				$select_lesson_options = $select_lesson_options_default;
 			}
 
 			$this->setting_option_fields = array(
@@ -159,9 +203,11 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 					'default'   => '',
 					'value'     => $this->setting_option_values['course'],
 					'options'   => $select_course_options,
+					'placeholder' => $select_course_options_default,
 					'attrs'     => array(
 						'data-ld_selector_nonce'   => wp_create_nonce( 'sfwd-courses' ),
 						'data-ld_selector_default' => '1',
+						'data-select2-query-data'  => $select_course_query_data_json,
 					),
 				),
 				'lesson' => array(
@@ -182,6 +228,7 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 					'default'   => '',
 					'value'     => $this->setting_option_values['lesson'],
 					'options'   => $select_lesson_options,
+					'placeholder' => $select_lesson_options_default,
 					'attrs'     => array(
 						'data-ld_selector_nonce'   => wp_create_nonce( 'sfwd-lessons' ),
 						'data-ld_selector_default' => '1',
@@ -189,6 +236,7 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 				),
 			);
 
+			/** This filter is documented in includes/settings/settings-metaboxes/class-ld-settings-metabox-course-access-settings.php */
 			$this->setting_option_fields = apply_filters( 'learndash_settings_fields', $this->setting_option_fields, $this->settings_metabox_key );
 
 			parent::load_settings_fields();
