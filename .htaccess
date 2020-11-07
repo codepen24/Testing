@@ -1,3 +1,11 @@
+# HTTPS forced by SG-Optimizer
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+# END HTTPS
+
 # Leverage Browser Caching by SG-Optimizer
 <IfModule mod_expires.c>
     ExpiresActive on
@@ -105,23 +113,8 @@ RewriteRule . index.php [L]
 </IfModule>
 
 # END WpGeoProtection
-# HTTPS forced by SG-Optimizer
-<IfModule mod_rewrite.c>
-    
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    RewriteCond %{HTTPS} off
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-</IfModule>
-# END HTTPS
-SetEnv PHPRC /home/transculturalgro/staging/5/php.ini
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /
-RewriteRule ^index\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L]
-</IfModule>
+
+
 # BEGIN WordPress
 # The directives (lines) between "BEGIN WordPress" and "END WordPress" are
 # dynamically generated, and should only be modified via WordPress filters.
@@ -135,15 +128,8 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
 </IfModule>
 
-# BEGIN Protect XML-RPC
-<Files "xmlrpc.php">
-Order deny,allow
-Deny from all
-</Files>
-# END Protect XML-RPC
-
-
 # END WordPress
+
 # BEGIN EWWWIO
 # The directives (lines) between `BEGIN EWWWIO` and `END EWWWIO` are
 # dynamically generated, and should only be modified via WordPress filters.

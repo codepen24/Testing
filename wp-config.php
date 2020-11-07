@@ -1,7 +1,12 @@
-<?php /* Siteguarding Block 45FDLO87BB9-START */ if (file_exists("/home/transculturalgro/public_html/wp-content/plugins/wp-geo-website-protection/geo.check.php"))include_once("/home/transculturalgro/public_html/wp-content/plugins/wp-geo-website-protection/geo.check.php");/* Siteguarding Block 45FDLO87BB9-END */?><?php /* Siteguarding Block 44B280167949-START */require_once '/home/transculturalgro/public_html/webanalyze/firewall/firewall.php';/* Siteguarding Block 44B280167949-END */ ?>
+
+Currently editing: 
+/home/transculturalgro/public_html/wp-config.php
+ Encoding: 
+utf-8
+  Switch to Code Editor    Save
 <?php
 // define( 'WP_DEBUG', true );
-// define('WP_CACHE', true); // Added by WP Rocket
+// define('WP_CACHE', true /* Modified by NitroPack */ ); // Added by WP Rocket
 // // Added by WP Rocket
 // // //Added by WP-Cache Manager
 // // Added by WP Rocket
@@ -49,7 +54,6 @@ define( 'WP_MEMORY_LIMIT', '512M' );
  */
  // Added by WP-Cache Manager
 // define( 'WPCACHEHOME', '/home/transculturalgro/public_html/wp-content/plugins/wp-super-cache/' ); //Added by WP-Cache Manager
-define( 'WP_AUTO_UPDATE_CORE', false );
 
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
@@ -164,7 +168,6 @@ $table_prefix = 'wp_';
 	*/
 	// Added by WP-Cache Manager
 	// define( 'WPCACHEHOME', '/home/transculturalgro/public_html/wp-content/plugins/wp-super-cache/' ); //Added by WP-Cache Manager
-	define( 'WP_AUTO_UPDATE_CORE', false );
 
 	// ** MySQL settings - You can get this info from your web host ** //
 	/** The name of the database for WordPress */
@@ -249,4 +252,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	// define('WP_HOME','https://101.100.216.62/en');
 	// define('WP_SITEURL','https://101.100.216.62/en');
 
-	@require_once '/var/lib/sec/wp-settings.php'; // Added by SiteGround WordPress management system
+# Disables all core updates. Added by SiteGround Autoupdate:
+define( 'WP_AUTO_UPDATE_CORE', false );
+
+@include_once('/var/lib/sec/wp-settings.php'); // Added by SiteGround WordPress management system
+
+
