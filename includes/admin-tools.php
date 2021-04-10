@@ -2,9 +2,9 @@
 /**
  * Admin Tools Page
  *
- * @package Badgeos WP
+ * @package BadgeOS WP
  * @subpackage Admin
- * @author Wooninjas
+ * @author LearningTimes, LLC
  * @license http://www.gnu.org/licenses/agpl.txt GNU AGPL v3.0
  * @link https://credly.com
  */
@@ -27,16 +27,17 @@ class Badgeos_Tools {
         add_action( 'admin_init', [ $this, 'badgeos_award_reward_achievements' ] );
         add_action( 'admin_init', [ $this, 'badgeos_award_reward_credits' ] );
         add_action( 'admin_init', [ $this, 'badgeos_award_reward_ranks' ] );
+        add_action( 'admin_init', [ $this, 'badgeos_tools_email_tab' ] );
     }
 
     /**
-     * Add GamifyWP Tools Page
+     * Add BadgeOS Tools Page
      */
     public function add_tool_page() {
         add_submenu_page(
             'badgeos_badgeos',
-            __( 'Tools', 'gamify' ),
-            __( 'Tools', 'gamify' ),
+            __( 'Tools', 'badgeos' ),
+            __( 'Tools', 'badgeos' ),
             badgeos_get_manager_capability(),
             'badgeos_tools',
             [ $this, 'register_badgeos_tool' ]
@@ -44,44 +45,225 @@ class Badgeos_Tools {
     }
 
     /**
-     * Register GamifyWP Tools
+     * Register BadgeOS Tools
      */
-    public function register_badgeos_tool() { ?>
+    public function register_badgeos_tool() { 
+        wp_enqueue_script( 'badgeos-jquery-ui-js' );
+        wp_enqueue_style( 'badgeos-admin-styles' );
+        ?>
 
         <div class="wrap badgeos-tools-page">
             <div id="icon-options-general" class="icon32"></div>
-            <h2><?php _e( 'Tools', 'gamify' ); ?></h2>
+            <h2><?php _e( 'Tools', 'badgeos' ); ?></h2>
 
             <div class="nav-tab-wrapper">
                 <?php
-                $badgeos_tools_sections = $this->badgeos_get_tools_sections();
-                foreach( $badgeos_tools_sections as $key => $badgeos_tools_section ) {
-                    ?>
-                    <a href="?page=badgeos_tools&tab=<?php echo $key; ?>"
-                       class="nav-tab <?php echo $this->page_tab == $key ? 'nav-tab-active' : ''; ?>">
-                        <i class="fa <?php echo $badgeos_tools_section['icon']; ?>" aria-hidden="true"></i>
-                        <?php _e( $badgeos_tools_section['title'], 'badgeos' ); ?>
-                    </a>
-                    <?php
-                }
+                    $badgeos_tools_sections = $this->badgeos_get_tools_sections();
+                    foreach( $badgeos_tools_sections as $key => $badgeos_tools_section ) {
+                        ?>
+                        <a href="?page=badgeos_tools&tab=<?php echo $key; ?>" class="nav-tab <?php echo $this->page_tab == $key ? 'nav-tab-active' : ''; ?>">
+                            <i class="fa <?php echo $badgeos_tools_section['icon']; ?>" aria-hidden="true"></i>
+                            <?php _e( $badgeos_tools_section['title'], 'badgeos' ); ?>
+                        </a>
+                        <?php
+                    }
                 ?>
             </div>
 
             <?php
-            foreach( $badgeos_tools_sections as $key => $badgeos_tools_section ) {
-                if( $this->page_tab == $key ) {
-                    $key = str_replace( '_', '-', $key );
-                    include( 'tools/' . $key . '.php' );
+                foreach( $badgeos_tools_sections as $key => $badgeos_tools_section ) {
+                    if( $this->page_tab == $key ) {
+                        $key = str_replace( '_', '-', $key );
+                        include( 'tools/' . $key . '.php' );
+                    }
                 }
-            }
             ?>
         </div>
         <?php
-
     }
+    
+    /**
+     * Update messages
+     *
+     * @return mixed|void
+     */
+    function badgeos_tools_email_notice_success() {
+        ?>
+            <div class="notice notice-success is-dismissible">
+                <p><?php _e( 'Settings Saved.', 'badgeos' ); ?></p>
+            </div>
+        <?php
+    }
+   
 
     /**
-     * GamifyWP Tools Section
+     * BadgeOS Tools Section
+     *
+     * @return mixed|void
+     */
+    public function badgeos_tools_email_tab() {
+        global $wpdb;
+
+        if( ! $_POST || $_SERVER['REQUEST_METHOD'] != 'POST' ) {
+            return false;
+        }
+        
+        $badgeos_admin_tools = ( $exists = badgeos_utilities::get_option( 'badgeos_admin_tools' ) ) ? $exists : array();
+        
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_general' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_general'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                
+                if( isset( $_FILES['badgeos_tools_email_general_logo'] ) ) {
+                    if ( isset( $_FILES['badgeos_tools_email_general_logo']['name'] ) && !empty( $_FILES['badgeos_tools_email_general_logo']['name'] ) ) {
+                        $file_dir = wp_upload_bits( $_FILES['badgeos_tools_email_general_logo']['name'], null, @file_get_contents( $_FILES['badgeos_tools_email_general_logo']['tmp_name'] ) );
+                        $badgeos_admin_tools['badgeos_tools_email_logo_url'] = $file_dir[ 'url' ];
+                        $badgeos_admin_tools['badgeos_tools_email_logo_dir'] = $file_dir[ 'file' ];
+                    }
+                }
+
+                $badgeos_admin_tools['email_general_footer_text']               =  sanitize_text_field( $tools_data[ 'email_general_footer_text' ] );
+                $badgeos_admin_tools['allow_unsubscribe_email']                 =  sanitize_text_field( $tools_data[ 'allow_unsubscribe_email' ] );
+                $badgeos_admin_tools['unsubscribe_email_page']                  =  sanitize_text_field( $tools_data[ 'unsubscribe_email_page' ] );
+                $badgeos_admin_tools['email_general_from_name']                 =  sanitize_text_field( $tools_data[ 'email_general_from_name' ] );
+                $badgeos_admin_tools['email_general_from_email']                =  sanitize_text_field( $tools_data[ 'email_general_from_email' ] );
+                $badgeos_admin_tools['email_general_cc_list']                   =  sanitize_text_field( $tools_data[ 'email_general_cc_list' ] );
+                $badgeos_admin_tools['email_general_bcc_list']                  =  sanitize_text_field( $tools_data[ 'email_general_bcc_list' ] );
+
+
+                $badgeos_admin_tools['email_general_footer_background_color']   =  sanitize_text_field( $tools_data[ 'email_general_footer_background_color' ] );
+                $badgeos_admin_tools['email_general_footer_text_color']         =  sanitize_text_field( $tools_data[ 'email_general_footer_text_color' ] );
+                $badgeos_admin_tools['email_general_background_color']          =  sanitize_text_field( $tools_data[ 'email_general_background_color' ] );
+                $badgeos_admin_tools['email_general_body_background_color']     =  sanitize_text_field( $tools_data[ 'email_general_body_background_color' ] );
+                $badgeos_admin_tools['email_general_body_text_color']           =  sanitize_text_field( $tools_data[ 'email_general_body_text_color' ] );
+                badgeos_utilities::update_option( 'badgeos_admin_tools',                              $badgeos_admin_tools );
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_achievement' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_achievement'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                $email_disable_earned_achievement_email = 'no';
+                if( isset( $tools_data['email_disable_earned_achievement_email'] ) ) {
+                    $email_disable_earned_achievement_email = 'yes';
+                }
+                
+                $badgeos_admin_tools['email_achievement_subject']               = sanitize_text_field( $tools_data[ 'email_achievement_subject' ] );
+                $badgeos_admin_tools['email_achievement_cc_list']               = sanitize_text_field( $tools_data[ 'email_achievement_cc_list' ] );
+                $badgeos_admin_tools['email_achievement_bcc_list']              = sanitize_text_field( $tools_data[ 'email_achievement_bcc_list' ] );
+
+                $badgeos_admin_tools['email_achievement_content']               = htmlentities( $tools_data[ 'email_achievement_content' ] );
+                $badgeos_admin_tools['email_disable_earned_achievement_email']  = $email_disable_earned_achievement_email;
+
+                badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools );
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_achievement_steps' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_achievement_steps'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                $email_disable_achievement_steps_email = 'no';
+                if( isset( $tools_data['email_disable_achievement_steps_email'] ) ) {
+                    $email_disable_achievement_steps_email = 'yes';
+                }
+                
+                $badgeos_admin_tools['email_steps_achievement_subject']        = sanitize_text_field( $tools_data[ 'email_steps_achievement_subject' ] );
+                $badgeos_admin_tools['email_steps_achievement_content']        = htmlentities( $tools_data[ 'email_steps_achievement_content' ] );
+                $badgeos_admin_tools['email_disable_achievement_steps_email']  = $email_disable_achievement_steps_email;
+
+                $badgeos_admin_tools['email_achievement_steps_cc_list']        = sanitize_text_field( $tools_data[ 'email_achievement_steps_cc_list' ] );
+                $badgeos_admin_tools['email_achievement_steps_bcc_list']        = sanitize_text_field( $tools_data[ 'email_achievement_steps_bcc_list' ] );
+
+                badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools );
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+       
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_ranks' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_ranks'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                $email_disable_ranks_email = 'no';
+                if( isset( $tools_data['email_disable_ranks_email'] ) ) {
+                    $email_disable_ranks_email = 'yes';
+                }
+
+                $badgeos_admin_tools['email_ranks_subject']        = sanitize_text_field( $tools_data[ 'email_ranks_subject' ] );
+                $badgeos_admin_tools['email_ranks_content']        = htmlentities( $tools_data[ 'email_ranks_content' ] );
+                $badgeos_admin_tools['email_disable_ranks_email']  = $email_disable_ranks_email;
+                $badgeos_admin_tools['email_ranks_cc_list']        = sanitize_text_field( $tools_data[ 'email_ranks_cc_list' ] );
+                $badgeos_admin_tools['email_ranks_bcc_list']       = sanitize_text_field( $tools_data[ 'email_ranks_bcc_list' ] );
+
+                badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools );
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_rank_steps' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_rank_steps'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                $email_disable_rank_steps_email = 'no';
+                if( isset( $tools_data['email_disable_rank_steps_email'] ) ) {
+                    $email_disable_rank_steps_email = 'yes';
+                }
+
+                $badgeos_admin_tools['email_steps_rank_subject']        = sanitize_text_field( $tools_data[ 'email_steps_rank_subject' ] );
+                $badgeos_admin_tools['email_steps_rank_content']        = htmlentities( $tools_data[ 'email_steps_rank_content' ] );
+                $badgeos_admin_tools['email_disable_rank_steps_email']  = $email_disable_rank_steps_email;
+                $badgeos_admin_tools['email_ranks_steps_cc_list']        = sanitize_text_field( $tools_data[ 'email_ranks_steps_cc_list' ] );
+                $badgeos_admin_tools['email_ranks_steps_bcc_list']        = sanitize_text_field( $tools_data[ 'email_ranks_steps_bcc_list' ] );
+
+                badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools );
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+       
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_point_awards' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_point_awards'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                $email_disable_point_awards_email = 'no';
+                if( isset( $tools_data['email_disable_point_awards_email'] ) ) {
+                    $email_disable_point_awards_email = 'yes';
+                }
+
+                $badgeos_admin_tools['email_point_awards_subject']          = sanitize_text_field( $tools_data[ 'email_point_awards_subject' ] );
+                $badgeos_admin_tools['email_point_awards_content']          = htmlentities( $tools_data[ 'email_point_awards_content' ] );
+                $badgeos_admin_tools['email_disable_point_awards_email']    = $email_disable_point_awards_email;
+                $badgeos_admin_tools['email_point_awards_cc_list']          = sanitize_text_field( $tools_data[ 'email_point_awards_cc_list' ] );
+                $badgeos_admin_tools['email_point_awards_bcc_list']         = sanitize_text_field( $tools_data[ 'email_point_awards_bcc_list' ] );
+                badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools );
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+
+        if( ( isset( $_POST['action'] ) && $_POST['action']=='badgeos_tools_email_point_deducts' ) ) {
+            
+            if( isset( $_POST['badgeos_tools_email_point_deducts'] ) ) {
+                $tools_data = $_POST['badgeos_tools'];
+                $email_disable_point_deducts_email = 'no';
+                if( isset( $tools_data['email_disable_point_deducts_email'] ) ) {
+                    $email_disable_point_deducts_email = 'yes';
+                }
+
+                $badgeos_admin_tools['email_point_deducts_subject']          = sanitize_text_field( $tools_data[ 'email_point_deducts_subject' ] );
+                $badgeos_admin_tools['email_point_deducts_content']          = htmlentities( $tools_data[ 'email_point_deducts_content' ] );
+                $badgeos_admin_tools['email_disable_point_deducts_email']    = $email_disable_point_deducts_email;
+                $badgeos_admin_tools['email_point_deducts_cc_list']          = sanitize_text_field( $tools_data[ 'email_point_deducts_cc_list' ] );
+                $badgeos_admin_tools['email_point_deducts_bcc_list']         = sanitize_text_field( $tools_data[ 'email_point_deducts_bcc_list' ] );
+                badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools ); 
+                add_action( 'admin_notices', [ $this, 'badgeos_tools_email_notice_success'] );
+            }
+        }
+     }
+    /**
+     * BadgeOS Tools Section
      *
      * @return mixed|void
      */
@@ -99,6 +281,10 @@ class Badgeos_Tools {
             'rank_tools' => array(
                 'title' => __( 'Ranks', 'badgeos' ),
                 'icon' => 'fa-arrow-up',
+            ),
+            'email_tools' => array(   
+                'title' => __( 'Emails', 'badgeos' ),
+                'icon' => 'fa-envelope',
             ),
             'system_tools' => array(
                 'title' => __( 'System', 'badgeos' ),
@@ -122,7 +308,7 @@ class Badgeos_Tools {
             return false;
         }
 
-        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
 
         if( ( isset( $_POST['achievement_bulk_award'] ) && wp_verify_nonce( $_POST['achievement_bulk_award'], 'achievement_bulk_award' ) ) ||
             ( isset( $_POST['achievement_bulk_revoke'] ) && wp_verify_nonce( $_POST['achievement_bulk_revoke'], 'achievement_bulk_revoke' ) )
@@ -154,9 +340,9 @@ class Badgeos_Tools {
                         }
                     }
                 }
-
             }
 
+            
             /**
              * Revoke Achievements
              */
@@ -283,8 +469,7 @@ class Badgeos_Tools {
                 $credit_amount = ( isset( $_POST['badgeos_tools']['credit_amount'] ) ? $_POST['badgeos_tools']['credit_amount'] : 0 );
 
                 if( ! empty( $credit_type_to_award ) && $credit_amount > 0 ) {
-                    $award_credits_to_all_users = ( ( isset( $_POST['badgeos_tools']['award_all_users'] ) &&
-                        $_POST['badgeos_tools']['award_all_users'] == 'on' ) ? $_POST['badgeos_tools']['award_all_users'] : '' );
+                    $award_credits_to_all_users = ( ( isset( $_POST['badgeos_tools']['award_all_users'] ) && $_POST['badgeos_tools']['award_all_users'] == 'on' ) ? $_POST['badgeos_tools']['award_all_users'] : '' );
                     $users_to_award = array();
                     if( 'on' == $award_credits_to_all_users ) {
                         $users = get_users();
