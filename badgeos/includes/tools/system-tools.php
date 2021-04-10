@@ -4,9 +4,9 @@
  *
  * @package badgeos
  * @subpackage Tools
- * @author LearningTimes, LLC
+ * @author Wooninjas
  * @license http://www.gnu.org/licenses/agpl.txt GNU AGPL v3.0
- * @link https://badgeos.org
+ * @link https://wooninjas.com
  */
 
 
@@ -33,22 +33,17 @@ if( ! function_exists( 'get_plugins' ) ) {
 
 $plugins = get_plugins();
 $active_plugins = get_option( 'active_plugins', array() );
-if( ! is_array( $active_plugins ) ) {
-    $active_plugins = [];
-}
-
 $active_plugins_output = '';
-if( isset( $active_plugins ) && count( $active_plugins ) > 0 ) {
-    foreach ( $plugins as $plugin_path => $plugin ) {
 
-        /**
-         * If the plugin isn't active, don't show it.
-         */
-        if ( ! in_array( $plugin_path, $active_plugins ) )
-            continue;
-    
-        $active_plugins_output .= $plugin['Name'] . ' (' . $plugin['Version'] . ')' . '<br>';
-    }
+foreach ( $plugins as $plugin_path => $plugin ) {
+
+    /**
+     * If the plugin isn't active, don't show it.
+     */
+    if ( ! in_array( $plugin_path, $active_plugins ) )
+        continue;
+
+    $active_plugins_output .= $plugin['Name'] . ' (' . $plugin['Version'] . ')' . '<br>';
 }
 
 $points_types = badgeos_get_point_types();
@@ -56,7 +51,7 @@ $points_types_output = '';
 
 if( !empty( $points_types ) ) {
     foreach( $points_types as $key => $item ) {
-        $points_types_output .= $item->post_title. ' - ' . badgeos_utilities::get_post_meta($item->ID,'_credits_plural_name', true ) . ' - ' . $item->post_name . ' (#' . $item->ID  . ')' . '<br>';
+        $points_types_output .= $item->post_title. ' - ' . get_post_meta($item->ID,'_credits_plural_name', true ) . ' - ' . $item->post_name . ' (#' . $item->ID  . ')' . '<br>';
     }
 }
 
@@ -141,12 +136,15 @@ function badgeos_get_hosting_provider() {
     return $host;
 }
 
-$badgeos_settings = badgeos_utilities::get_option( 'badgeos_settings' );
+$badgeos_settings = get_option( 'badgeos_settings' );
 
 $logs = wp_count_posts('badgeos-log-entry');
 $logs_exists = ( intval( $logs->publish ) > 0 ) ? true : false;
 
 $minimum_role = ( isset( $badgeos_settings['minimum_role'] ) ) ? $badgeos_settings['minimum_role'] : 'manage_options';
+$submission_manager_role = ( isset( $badgeos_settings['submission_manager_role'] ) ) ? $badgeos_settings['submission_manager_role'] : 'manage_options';
+$submission_email = ( isset( $badgeos_settings['submission_email'] ) && 'disabled' !=  $badgeos_settings['submission_email'] ) ? $badgeos_settings['submission_email'] : 'disabled';
+$submission_email_addresses = ( isset( $badgeos_settings['submission_email_addresses'] ) ) ? $badgeos_settings['submission_email_addresses'] : '';
 $debug_mode = ( isset( $badgeos_settings['debug_mode'] ) && 'disabled' !=  $badgeos_settings['debug_mode'] ) ? $badgeos_settings['debug_mode'] : 'disabled';
 $log_entries = ( isset( $badgeos_settings['log_entries'] ) && 'disabled' !=  $badgeos_settings['log_entries'] ) ? $badgeos_settings['log_entries'] : 'disabled';
 $ms_show_all_achievements = ( isset( $badgeos_settings['ms_show_all_achievements'] ) ) ? $badgeos_settings['ms_show_all_achievements'] : 'disabled';
@@ -322,7 +320,7 @@ $remove_data_on_uninstall = ( isset( $badgeos_settings['remove_data_on_uninstall
                         <?php _e( 'Permalink Structure:', 'badgeos' ); ?>
                     </label>
                 </th>
-                <td><?php echo ( badgeos_utilities::get_option( 'permalink_structure' ) ? badgeos_utilities::get_option( 'permalink_structure' ) : 'Default' ); ?></td>
+                <td><?php echo ( get_option( 'permalink_structure' ) ? get_option( 'permalink_structure' ) : 'Default' ); ?></td>
             </tr>
             <tr>
                 <th scope="row">
@@ -387,70 +385,84 @@ $remove_data_on_uninstall = ( isset( $badgeos_settings['remove_data_on_uninstall
         <div class="tab-title"><?php _e( 'BadgeOS Info', 'badgeos' ); ?></div>
         <table cellspacing="0">
             <tbody>
-                <tr>
-                    <th scope="row">
-                        <label for="point_types">
-                            <?php _e( 'Points Types:', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo $points_types_output; ?></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="achievement_types">
-                            <?php _e( 'Achievement Types:', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo $achievement_types_output; ?></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="rank_types">
-                            <?php _e( 'Rank Types:', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo $rank_types_output; ?></td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="min_role_to-administrate">
-                            <?php _e( 'Min Role to Administer Plugin?', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo $minimum_role; ?></td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="log_enabled">
-                            <?php _e( 'Log Enabled: ', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo ( $log_entries != 'disabled' )? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure'); ?></td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="log_exists">
-                            <?php _e( 'Log Exists: ', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo ( $logs_exists ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ); ?></td>
-                </tr>
-                
-                <tr>
-                    <th scope="row">
-                        <label for="debug_mode">
-                            <?php _e( 'Debug Mode?', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo ( 'disabled' != $debug_mode ) ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ; ?></td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="delete_data_on_uninstall">
-                            <?php _e( 'Delete Data on Uninstall? ', 'badgeos' ); ?>
-                        </label>
-                    </th>
-                    <td><?php echo ( $remove_data_on_uninstall == 'on' ) ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ; ?></td>
-                </tr>
-                <?php do_action( 'badgeos_tools_badgeos_information', $badgeos_settings );?>
+            <tr>
+                <th scope="row">
+                    <label for="point_types">
+                        <?php _e( 'Points Types:', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo $points_types_output; ?></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="achievement_types">
+                        <?php _e( 'Achievement Types:', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo $achievement_types_output; ?></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="rank_types">
+                        <?php _e( 'Rank Types:', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo $rank_types_output; ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="min_role_to-administrate">
+                        <?php _e( 'Min Role to Administer Plugin?', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo $minimum_role; ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="minimum_role_for_submission">
+                        <?php _e( 'Min Role for Submission/Nomination?', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo $submission_manager_role; ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="log_enabled">
+                        <?php _e( 'Log Enabled: ', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo ( $log_entries != 'disabled' )? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure'); ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="log_exists">
+                        <?php _e( 'Log Exists: ', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo ( $logs_exists ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ); ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="email_on_submission">
+                        <?php _e( 'Email on submissions/nominations?', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo ( 'disabled' != $submission_email ) ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ; ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="debug_mode">
+                        <?php _e( 'Debug Mode?', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo ( 'disabled' != $debug_mode ) ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ; ?></td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="delete_data_on_uninstall">
+                        <?php _e( 'Delete Data on Uninstall? ', 'badgeos' ); ?>
+                    </label>
+                </th>
+                <td><?php echo ( $remove_data_on_uninstall == 'on' ) ? show_symbol_on_tool_page('success') : show_symbol_on_tool_page('failure') ; ?></td>
+            </tr>
             </tbody>
         </table>
     </div>

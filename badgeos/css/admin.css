@@ -10,12 +10,6 @@ li.step-row {
 	border: 1px solid #DDD;
 	padding: 5px 10px;
 }
-.badgeos-user-earned-ranks-admin-block, .badgeos-user-earned-achievements-admin-block{
-	color: #444;
-	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
-	font-size: 13px;
-	line-height: 1.4em;
-}
 li.step-row .step-handle {
 	display: block;
 	background:url( '../images/ui_handle.png' );
@@ -316,23 +310,12 @@ Shortcode Embed styles
 .ui-tabs-vertical .ui-tabs-panel {
 	padding: 1em;
 	float: right;
-	width: calc(75% - 2px);
-}
-#badgeos-setting-tabs .ui-tabs-panel {
-	padding: 1em;
-	float: right;
-	width: calc(72% - 3px);
-}
-#badgeos-setting-tabs td, th{
-	font-size: 14px;
-	text-align: left;
-	vertical-align: top;
+	width: calc(75% - 1px);
 }
 #system-tabs,
 #achievement-tabs,
 #rank-tabs,
-#credit-tabs,
-#email-tabs, #badgeos-setting-tabs {
+#credit-tabs {
 	margin-top: 20px;
 	background-color: #f6f6f6;
 	border-color: #ccc;
@@ -342,7 +325,6 @@ Shortcode Embed styles
 #system-tabs .tab-title,
 #achievement-tabs .tab-title,
 #rank-tabs .tab-title,
-#email-tabs .tab-title, #badgeos-setting-tabs .tab-title, 
 #credit-tabs .tab-title {
 	padding: 10px;
 	font-size: 15px;
@@ -353,7 +335,6 @@ Shortcode Embed styles
 #system-tabs.ui-tabs-vertical .ui-tabs-nav,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav, #badgeos-setting-tabs.ui-tabs-vertical .ui-tabs-nav,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav {
 	padding: 0 !important;
 	margin: 0 !important;
@@ -365,7 +346,6 @@ Shortcode Embed styles
 #system-tabs.ui-tabs-vertical .ui-tabs-nav li a,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li a,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav li a,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav li a, #badgeos-setting-tabs.ui-tabs-vertical .ui-tabs-nav li a,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav li a {
 	padding: 8px 2% !important;
 	width: 96% !important;
@@ -373,7 +353,6 @@ Shortcode Embed styles
 #system-tabs.ui-tabs-vertical .ui-tabs-nav li,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav li,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav li, #badgeos-setting-tabs.ui-tabs-vertical .ui-tabs-nav li,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav li {
 	background-color: #f6f6f6;
 	border: none;
@@ -387,7 +366,6 @@ Shortcode Embed styles
 #system-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active,#badgeos-setting-tabs.ui-tabs-nav li.ui-tabs-active,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active {
 	background-color: #fff;
 	border: none;
@@ -400,14 +378,12 @@ Shortcode Embed styles
 #system-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active a,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active a,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active a,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active a, #badgeos-setting-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active a,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active a {
 	color: #000;
 }
 #system-tabs.ui-tabs-vertical .ui-tabs-nav li:focus,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li:focus,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav li:focus,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav li:focus, #badgeos-setting-tabs.ui-tabs-vertical .ui-tabs-nav li:focus,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav li:focus {
 	border: none !important;
 	outline: none !important;
@@ -417,7 +393,6 @@ Shortcode Embed styles
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li a:focus,
 #achievement-tabs.ui-tabs-vertical .ui-tabs-nav li a:focus,
 #rank-tabs.ui-tabs-vertical .ui-tabs-nav li a:focus,
-#email-tabs.ui-tabs-vertical .ui-tabs-nav li a:focus, #badgeos-setting-tabs.ui-tabs-vertical .ui-tabs-nav li a:focus,
 #credit-tabs.ui-tabs-vertical .ui-tabs-nav li a:focus {
 	border: none !important;
 	outline: none !important;
@@ -431,26 +406,12 @@ Shortcode Embed styles
 #rank_bulk_revoke,
 #credit_bulk_award,
 #credit_bulk_revoke,
-#badgeos_tools_email_general,
-#badgeos_tools_email_achievements,
-#badgeos_tools_email_achievement_steps,
-#badgeos_tools_email_ranks,
-#badgeos_tools_email_rank_steps,
-#badgeos_tools_email_point_awards,
-#badgeos_tools_email_point_deducts,
 #achievement_bulk_award,
 #achievement_bulk_revoke {
 	background-color: #fff;
 	padding: 0 !important;
 	border-left: 1px solid #ccc;
 }
-#badgeos_tools_email_general,
-#badgeos_tools_email_achievements,
-#badgeos_tools_email_achievement_steps,
-#badgeos_tools_email_ranks,
-#badgeos_tools_email_rank_steps,
-#badgeos_tools_email_point_awards,
-#badgeos_tools_email_point_deducts,
 #rank_bulk_award form,
 #rank_bulk_revoke form,
 #credit_bulk_award form,
@@ -498,7 +459,6 @@ Shortcode Embed styles
 #badgeos_info table tr td {
 	padding: 10px;
 }
-
 #rank_bulk_award form table,
 #rank_bulk_revoke form table,
 #credit_bulk_award form table,
@@ -531,14 +491,12 @@ Shortcode Embed styles
 	border-bottom: 1pt solid #e5e5e5;
 	padding: 20px 0;
 }
-#email-tabs .button, #badgeos-setting-tabs .button,
 #rank-tabs .button,
 #achievement-tabs .button,
 #credit-tabs .button {
 	margin: 20px 0;
 	float: right;
 }
-#email-tabs .tool-hint, #badgeos-setting-tabs .tool-hint,
 #rank-tabs .tool-hint,
 #achievement-tabs .tool-hint,
 #credit-tabs .tool-hint {
@@ -557,13 +515,6 @@ Shortcode Embed styles
 	height: auto;
 }
 
-#badgeos_tools_email_general form table tr th,
-#badgeos_tools_email_achievements form table tr th,
-#badgeos_tools_email_achievement_steps form table tr th,
-#badgeos_tools_email_ranks form table tr th,
-#badgeos_tools_email_rank_steps form table tr th,
-#badgeos_tools_email_point_awards form table tr th,
-#badgeos_tools_email_point_deducts form table tr th,
 #credit_bulk_award form table tr th,
 #credit_bulk_award form table tr td,
 #rank_bulk_award form table tr th,
@@ -574,13 +525,6 @@ Shortcode Embed styles
 #credit_bulk_revoke form table tr td {
 	padding-bottom: 20px;
 }
-#badgeos_tools_email_general form table tr th,
-#badgeos_tools_email_achievements form table tr th,
-#badgeos_tools_email_achievement_steps form table tr th,
-#badgeos_tools_email_ranks form table tr th,
-#badgeos_tools_email_rank_steps form table tr th,
-#badgeos_tools_email_point_awards form table tr th,
-#badgeos_tools_email_point_deducts form table tr th,
 #credit_bulk_award form table tr th,
 #credit_bulk_revoke form table tr th,
 #rank_bulk_award form table tr th,
@@ -591,13 +535,6 @@ Shortcode Embed styles
 	text-align: left;
 	width: 40%;
 }
-#badgeos_tools_email_general form table tr td .select2-selection,
-#badgeos_tools_email_achievements form table tr td .select2-selection,
-#badgeos_tools_email_achievement_steps form table tr td .select2-selection,
-#badgeos_tools_email_ranks form table tr td .select2-selection,
-#badgeos_tools_email_rank_steps form table tr td .select2-selection,
-#badgeos_tools_email_point_awards form table tr td .select2-selection,
-#badgeos_tools_email_point_deducts form table tr td .select2-selection,
 #credit_bulk_award form table tr td .select2-selection,
 #credit_bulk_revoke form table tr td .select2-selection,
 #rank_bulk_award form table tr td .select2-selection,
@@ -607,15 +544,6 @@ Shortcode Embed styles
 	border: 1px solid #ddd;
 	max-width: 70%;
 	padding: 6px 8px;
-}
-#badgeos_tools_email_general form,
-#badgeos_tools_email_achievements form,
-#badgeos_tools_email_achievement_steps form,
-#badgeos_tools_email_ranks form,
-#badgeos_tools_email_rank_steps form,
-#badgeos_tools_email_point_awards form,
-#badgeos_tools_email_point_deducts form {
-	padding: 20px;
 }
 #TB_window.badgeos-shortcode-thickbox #TB_ajaxContent {
 	overflow-y: auto !important;
@@ -636,391 +564,3 @@ Shortcode Embed styles
 	clear: left;
 	width: 100%;
 }
-
-#ldqie_normal_progress_loader {
-	margin: 10px auto;
-}
-#badgeos_ob_normal_progress_bar {
-	width: 50%;
-	margin: 10px auto;
-}
-.ui-progressbar {
-	position: relative;
-}
-.progress-label {
-	position: absolute;
-	left: 43%;
-	top: 4px;
-	font-weight: bold;
-	text-shadow: 1px 1px 0 #fff;
-}
-
-.badgeos_settings_license_tab{
-	vertical-align: top;
-	padding: 10px;
-}
-
-.badgeos_item {
-	box-shadow: 0px 8px 38px 0px rgba(16, 16, 16, 0.07);
-	background: #fff;
-	max-width: 30%;
-	margin: auto;
-	padding: 15px 20px 0px;
-	text-align: center;
-	font-family: inherit;
-	width: 27%;
-	margin: 20px 22px 0px 0px;
-	float: left;
-}
-  
-.badgeos_item button {
-	border: none;
-	outline: 0;
-	padding: 12px;
-	color: #0073aa;
-	background-color: transparent;
-	text-align: center;
-	cursor: pointer;
-	width: 100%;
-	font-size: 18px;
-}
-
-.badgeos_item button:hover {
-	opacity: 0.7;
-}
-.badgeos_assets .badgeos_item{
-	
-}
-.badgeos_assets_info_log_content a{
-	display:none;
-}
-.badgeos_assets_info_log{
-	display:none;
-	margin:10px;
-}
-.badgeos_assets_info_log_content{
-	padding:10px;
-	overflow: scroll;
-	width:400px;
-	height:300px;
-}
-.badgeos_download_asset_success_message{
-	font-size: 11px;
-	background-color: green;
-	color: white;
-	border-radius: 5px;
-	padding: 5px;
-	margin:5px;
-}
-
-.badgeos_download_asset_failed_message{
-	font-size: 11px;
-	background-color: red;
-	color: white;
-	border-radius: 5px;
-	padding: 5px;
-	margin:5px;
-}
-
-.badgeos_item .badgeos-item-description{
-	text-align: left;
-	font-weight: 300;
-	padding: 10px;
-	max-height: 60px;
-	height: 60px;
-}
-.badgeos-assets-message-divs{
-	max-height: 90px;
-	height: 90px;
-	overflow:hidden;
-}
-.badgeos_item .badgeos-item-button{
-	text-align: center;
-}
-.badgeos-assets-image {
-	display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-	display: flex;
-	-webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-	max-height: 180px;
-	overflow: hidden;
-	height: 180px;
-	width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-
-/**************welcome page************************/
-.badgeos-welcome-container {
-	max-width: calc(100% - 161px);
-	width: 100%;
-	margin-left: 80px;
-	margin-top: 32px;
-}
-
-.badgeos-welcome-site-inner {
-	max-width: 1290px;
-	margin: 0 auto;
-	overflow: hidden;
-}
-
-/* Title Header*/
-
-.badgeos_dashboard_heading {
-	display: flex;
-	margin: 35px 0;
-	align-items: center;
-}
-
-.badgeos_dashboard_heading .badgeos_dashboard_title {
-	display: flex;
-	align-items: baseline;
-}
-
-.badgeos_dashboard_heading .badgeos_dashboard_title h1 {
-	margin: 0 20px;
-	font-size: 48px;
-}
-
-.badgeos_dashboard_heading .badgeos_dashboard_title span {
-	font-size: 22px;
-}
-
-.badgeos_dashboard_heading img {
-	width: 89px;
-}
-
-/* Add-ons carousel*/
-
-.badgeos_welcome_addons_list .badgeos_welcome_addons_list_ul {
-	margin: 0;
-	padding: 0;
-}
-
-.badgeos_welcome_addons_list .multiple {
-	list-style-type: none;
-	background: #fff;
-	width: 30%;
-	display: inline-block;
-}
-
-.badgeos_welcome_addons_list .slick-prev {
-    display: block !important;
-    position: absolute;
-    right: 100px !important;
-    top: -27px;
-    left: auto;
-}
-
-.badgeos_welcome_addons_list .slick-prev:before {
-    color: #222;
-    font-size: 20px;
-    content: "\f053";
-    font-family: 'fontAwesome';
-}
-
-.badgeos_welcome_addons_list .slick-next {
-    display: block !important;
-    position: absolute;
-    right: 24px;
-    top: -27px;
-}
-
-.badgeos_welcome_addons_list .slick-next:before {
-    color: #222;
-    font-size: 20px;
-    content: "\f054";
-    font-family: 'fontAwesome';
-}
-
-
-.badgeos_welcome_addon img {
-	width: 100%;
-}
-
-.badgeos_welcome_addon {
-	display: flex;
-	padding: 1em;
-	border: 1px solid #ccc;
-	min-height: 17em;
-	min-height: 15em;
-}
-
-.badgeos_welcome_addons_panel {
-	margin-bottom: 55px;
-}
-
-.badgeos_welcome_on_content {
-	font-family: Arial, Helvetica, sans-serif;
-	padding-left: 20px;
-}
-
-.badgeos_welcome_on_content .badgeos_add-on_name {
-	color: #ed1f6e;
-	font-size: 20px;
-	line-height: 1.5;
-}
-
-.badgeos_addon_welcome_btn {
-    text-align: center;
-}
-
-.badgeos_addon_welcome_btn a {
-	font-family: Open Sans, sans-serif;
-	padding: 0.5em 1em;
-	font-size: 12px;
-	white-space: nowrap;
-	background-color: #F7F7F7;
-	color: black;
-	border: 1px solid #ADADAD;
-}
-
-/* Assets section */
-
-.badgeos_assets_list .slick-prev {
-    display: block !important;
-    position: absolute;
-    right: 100px !important;
-    top: -27px;
-    left: auto;
-}
-
-.badgeos_assets_list .slick-prev:before {
-    color: #222;
-    font-size: 20px;
-    content: "\f053";
-    font-family: 'fontAwesome';
-}
-
-.badgeos_assets_list .slick-next {
-    display: block !important;
-    position: absolute;
-    right: 24px;
-    top: -27px;
-}
-
-.badgeos_assets_list .slick-next:before {
-    color: #222;
-    font-size: 20px;
-    content: "\f054";
-    font-family: 'fontAwesome';
-}
-
-.badgeos_assets_panel { 
-	margin-bottom: 55px; 
-}
-
-.badgeos_assets_list ul {
-	margin: 0;
-	padding: 0;
-}
-
-.badgeos_asset { 
-	text-align: center;
-	padding: 2em 0;
-	border: 1px solid #ccc;
-	background-color: #fff 
-}
-
-.badgeos_asset img {
-	width: 65%;
-}
-
-.badgeos_asset_content { 
-	font-family: Arial, Helvetica, sans-serif;
-	padding: 20px;
-}
-
-.badgeos_asset_content .badgeos_asset_name {
-	font-size: 22px;
-	line-height: 2.2;
-}
-
-.badgeos_asset_desc button {
-	font-family: Open Sans, sans-serif;
-	padding: 0.5em 2em;
-}
-
-/* Quick Links section */    
-.badgeos_quick_links {
-	background: #fff;
-	padding: 1em;
-	border: 1px solid #000;
-	margin-bottom: 55px;
-}
-
-.badgeos_quick_links ul {
-	padding: 0;
-	margin: 0;
-}
-
-.badgeos_quick_links ul li {
-	list-style-type: none;
-	line-height: 2.2;
-}
-/* Please Rate section*/
-.badgeos_please_rate, .badgeos_need_help {
-	background: #fff;
-	padding: 1em;
-	border: 1px solid #000;
-	margin-bottom: 55px;
-}
-
-.bos-need-help {
-    width: 120px;
-}
-
-.badgeos_please_rate p, .badgeos_need_help p {
-	font-size: inherit;
-}
-
-.badgeos_please_rate {
-	background: #fff;
-	padding: 1em;
-	border: 1px solid #000;
-	margin-bottom: 55px;
-}
-
-.badgeos_please_rate p {
-	font-size: inherit;
-}
-
-@media only screen and (min-width: 180px) and (max-width: 759px) {
-
-	.badgeos-welcome-container {
-		max-width: calc(100% - 0px);
-		margin-left: 0;
-	}
-  
-  	.badgeos_welcome_addon {
-		display: block;
-		height: auto; 
-	}
-
-	.badgeos_welcome_on_content {
-		margin-top: 25px;
-	}
-
-	.badgeos_dashboard_heading {
-		margin-bottom: 35px;
-	}
-
-	.badgeos_dashboard_heading .badgeos_dashboard_title {
-		display: block;
-		margin: 0 20px;
-	}
-
-	.badgeos_dashboard_heading .badgeos_dashboard_title span {
-		line-height: 4;
-		margin: 0 20px;
-	}
-}
-.badgeos_please_rate .badgeos-btn-need-help{
-	width:140px;
-}
-/**************end welcome page************************/

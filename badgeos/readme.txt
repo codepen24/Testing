@@ -3,8 +3,8 @@ Contributors: badgeos, learningtimes, asahitechnologies, wooninjas, rahilwazir, 
 Donate link: http://badgeos.org/contribute/donate/
 Tags: badge, badges, openbadges, learningtimes, OBI, mozilla, open badges, achievement, award, reward, engagement, submission, nomination, API, open credit, credit
 Requires at least: 4.0
-Tested up to: 5.6
-Stable tag: 3.6.9
+Tested up to: 5.3.2
+Stable tag: 3.4
 License: GNU AGPLv3
 License URI: http://www.gnu.org/licenses/agpl-3.0.html
 
@@ -161,8 +161,9 @@ There is NO WARRANTY for this software, express or implied, including the implie
 1. Upload 'badgeos' to the '/wp-content/plugins/' directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Visit the BadgeOS menu to add Badges/ranks and set up new Achievement/Point/Rank types.
-4. Use the BadgeOS Shortcode button available from any content editor in our site to turn any page or post into a part of your achievement or engagement system. For example, add lists of badges or other achievements, submission lists, a single badge and much more. Visit the Help/Support section of the BadgeOS menu for more information on available shortcodes.
-5. See video tutorials about BadgeOS at: [http://badgeos.org/support/tutorials/](http://badgeos.org/support/tutorials/ "BadgeOS Tutorials")
+4. Enter Credly credentials for the badge Issuer in the Credly Integration settings to enable the free Credly Badge Builder and badge sharing. (First get a [free account](https://credly.com/#!/create-account "Create a free Credly account") at Credly.com if you do not have one.)
+5. Use the BadgeOS Shortcode button available from any content editor in our site to turn any page or post into a part of your achievement or engagement system. For example, add lists of badges or other achievements, submission lists, a single badge and much more. Visit the Help/Support section of the BadgeOS menu for more information on available shortcodes.
+6. See video tutorials about BadgeOS at: [http://badgeos.org/support/tutorials/](http://badgeos.org/support/tutorials/ "BadgeOS Tutorials")
 
 
 == Frequently Asked Questions ==
@@ -243,114 +244,6 @@ Thanks for asking!  Please do share back code modifications or enhancements you 
 15. Ranks data
 
 == Changelog ==
-
-= 3.6.9 =
-Fix: Fixed single site license activation issue on multiple sites.
-New: Added bulk achievement emails support for bulk rewarding achievements.
-Fix: Fixed select box css issue related to tools page bulk achievement.
-Fix: Database installation script will only run when there are new database updates or user is activating the badgeos.
-Fix: Added minified badgeos css and js files with support of SCRIPT_DEBUG constant for debugging.
-Fix: Removed Credly code from the system.
-
-= 3.6.8 =
-* New: Added an option to define a Not Earned Badge Icon for display on Badge Page
-* New: Added new shortcode to display badge evidence information on achievement earned email.
-* Fix: Fixed evidence shortcode output.
-* Fix: Fixed multiple badge award issue on editing same comments.
-* Fix: Fixed license key issue for badgeos-addons.
-
-= 3.6.7 =
-* New: Added User Ranks Widget
-* New: Added User Points Widget
-* Fix: Disables Credly Integration
-
-= 3.6.6 =
-* New: Award users for completing the number of years
-* New: Award points to users for user's birthday
-* New: Award author when a user visits post/page
-* New: Award points when a certain rank is achieved
-* Fix: Updated Congratulations message note
-* Fix: Daily Visit Website trigger is not working
-* Fix: Fix UI issues in Welcome screen
-
-= 3.6.5 =
-* New: Added a Welcome page
-* New: Added Global and individual BCC and CC options on badgeos emails
-* New: Added multi-site support
-
-= 3.6.4 =
-* New: Open Badge Verification pop-up enhancements to add issuer, issued by, expire date and issue date
-* New: Add option for users to unsubscribe from Earned Achievement and other configurable emails
-* New: Add a new trigger visit Any/specific post/page
-* New: Added two new action hooks for tools/email page i.e. badgeos_email_tools_settings_tab_header and badgeos_email_tools_settings_tab_content
-* Fix: Fixed a notice on api end-points due to new updates on wordpress 5.5
-* Fix: Fixed the user earned ranks shortcode design.
-* Fix: Added Save Settings message on the admin side of badgeos emails
-
-= 3.6.3 =
-* New: Adds Assets section to get stock images for badges/ranks/points
-* New: Adds thumbnail support in user earned points
-* New: Adds Color configuration for making Branded Email templates
-* New: Adds Pagination support for User earned Ranks and User earned achievements functions
-
-= 3.6.2 =
-* New: Removed the nomination and submission from BadgeOS Core
-* New: Added two new hooks to add new main tabs on settings page i.e. badgeos_settings_main_tab_header and badgeos_settings_main_tab_content
-* New: Added Unique Classes on front end on shortcodes to help hide content/apply styles
-* New: Provide a possibility to access Badge Evidence Page from User’s Dashboard through User Earned Achievement Shortcode and BadgeOS Earned Achievements Widget
-* New: Added a possibility to add Badge Evidence Page with a shortcode and Gutenberg block
-* New: Added 2 new action hooks on evidence page badgeos_evidence_after_left_column and badgeos_evidence_after_right_column
-* New: Added Ranks list Shortcode and Gutenberg block.
-* New: Added Single Rank Shortcode and Gutenberg block.
-* Fix: The bug of timezone not allowing automatic badge award on completing steps
-* Fix: The bug of Gutenberg due to which double points are awarded
-* Fix: Fixed the Download Link in user profile page 
-* Fix: Fixed the undefined error on expire message when clicking verify button in open badge portion
-* Fix: No records found issue is fixed in shortcodes
-
-= 3.6.1 =
-* New: Updated the BadgeOS Settings page layout
-* New: Added a link in OB Integration to recreate OB pages if someone missed it for the first time.
-* Fix: Fixed The error "TypeError: progressbar.progressbar is not a function" in console.
-* Fix: Added a dismiss button which will dismiss the Credly disconnection message forever
-* Fix: Fixed the achievement and rank images width/height issue in achievement and rank based shortcodes and widget
-* Fix: Fixed the error "badgeos_shortcode_embed_message not defined" in console
-
-= 3.6 =
-* New: Added option to make the earned badges compatible with OB standards
-* New: Added option to set achievements/ranks image sizes globally
-* New: Added option to update image size from earned achievements/ranks shortcodes
-* New: Added option to update users points through ajax
-* New: Added user id parameter for earned achievements/ranks shortcodes
-* New: Removed Credly integration for new installations
-* Fix: Disable the BadgeOS emails by default
-* Fix: Fixed multiple required steps badge issue
-* Fix: Fixed conflict with theme the7
-* Fix: Replaced deprecated functions
-
-= 3.5.1 =
-* New: Added default (list/grid) view option for achievement list and user earned achievements/ranks shortcodes
-* New: Added option to send email on earning achievements/points/ranks
-* New: Added option to edit/update the header/footer and content of the email
-* Fix: Revamped achievement list shortcode
-* Fix: Revamped users earned points shortcode
-* Fix: Fixed WordPress  version ( below 5.0) compatibility issue
-* Fix: Enqueued CKEditor js code only on submission page to avoid conflicts
-* Fix: Revamped DB update script
-* Fix: Fixed WP deprecated function issue
-* Fix: Fixed Elementor plugin conflict
-* Fix: Revamped user achievement widgets
-
-
-= 3.5 =
-* New: Added support for Gutenburg
-* New: Added option to display earned points/achievement/ranks with list/grid view
-* New: Added option to disable credly email
-* New: Added option to display titles from earned achievement widgets
-* New: Added new filters
-* Fix: Fixed Woocommerce and screen options CSS conflict
-* Fix: Fixed multiselect script conflict
-* Fix: UI Tweaks
 
 = 3.4 =
 * New: Added option to update achievement post type and steps slugs

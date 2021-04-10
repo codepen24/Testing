@@ -41,33 +41,6 @@ function badgeos_maybe_award_achievement_to_user( $achievement_id = 0, $user_id 
 }
 
 /**
- * Return the current wordpress timezone string
- *
- * @return $tzstring
- */
-function badgeos_timezone_string() {
-	$current_offset = badgeos_utilities::get_option( 'gmt_offset' );
-	$tzstring       = badgeos_utilities::get_option( 'timezone_string' );
-
-	// Remove old Etc mappings. Fallback to gmt_offset.
-	if ( false !== strpos( $tzstring, 'Etc/GMT' ) ) {
-		$tzstring = '';
-	}
-
-	if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists
-		if ( 0 == $current_offset ) {
-			$tzstring = 'UTC+0';
-		} elseif ( $current_offset < 0 ) {
-			$tzstring = 'UTC' . $current_offset;
-		} else {
-			$tzstring = 'UTC+' . $current_offset;
-		}
-	}
-
-	return $tzstring;
-}
-
-/**
  * Check if user has completed an achievement
  *
  * @since  1.0.0
@@ -87,18 +60,7 @@ function badgeos_check_achievement_completion_for_user( $achievement_id = 0, $us
 	if ( ! $site_id )
 		$site_id = get_current_blog_id();
 	
-	$timestamp 		= badgeos_achievement_last_user_activity( $achievement_id, $user_id );
-	if( intval( $timestamp ) > 0 ) {
-		$current_offset = badgeos_utilities::get_option( 'gmt_offset' );
-		$tzstring       = badgeos_utilities::get_option( 'timezone_string' );
-		if( empty( $tzstring ) || strtolower( $tzstring ) == 'utc' ) {
-			$offset = badgeos_utilities::get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
-			$timestamp =  $timestamp + $offset;
-		} else {
-			$timestamp = $GLOBALS['badgeos']->start_time;
-		}
-	}
-	
+	$timestamp = badgeos_achievement_last_user_activity( $achievement_id, $user_id );
 	if( intval( $timestamp ) < 1 ) {
 		$timestamp = $GLOBALS['badgeos']->start_time;
 	}
@@ -138,12 +100,12 @@ function badgeos_check_achievement_completion_for_user( $achievement_id = 0, $us
 function badgeos_user_meets_points_requirement( $return = false, $user_id = 0, $achievement_id = 0 ) {
 
 	// First, see if the achievement requires a minimum amount of points
-	if ( 'points' == badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_earned_by', true ) ) {
+	if ( 'points' == get_post_meta( $achievement_id, '_badgeos_earned_by', true ) ) {
 
 		// Grab our user's points and see if they at least as many as required
 		$user_points     = intval( badgeos_get_users_points( $user_id, $achievement_id ) );
 		$points_required = 0;
-		$points_req = badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_points_required', true );
+		$points_req = get_post_meta( $achievement_id, '_badgeos_points_required', true );
 	
 		if( isset( $points_req ) &&  is_array( $points_req ) && count( $points_req ) > 0 ) {
 			$points_required 	= intval( $points_req['_badgeos_points_required'] );
@@ -189,27 +151,27 @@ function badgeos_daily_visit_access( $return, $user_id, $achievement_id, $this_t
 		
 	if( trim( $this_trigger ) == 'badgeos_daily_visit' ) {
 
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 
-        if ( trim( $badgeos_settings['achievement_step_post_type'] ) != badgeos_utilities::get_post_type( $achievement_id ) ) {
+        if ( trim( $badgeos_settings['achievement_step_post_type'] ) != get_post_type( $achievement_id ) ) {
             return false;
         }
 		
 		$meta_key = badgeos_daily_visit_add_step_status( $user_id, $achievement_id, 'achievement' );
-		$badgeos_daily_visit_awarded_achivement = badgeos_utilities::get_user_meta( $user_id, $meta_key, true );
 		
+		$badgeos_daily_visit_awarded_achivement = get_user_meta( $user_id, $meta_key, true );
 		if( trim( $badgeos_daily_visit_awarded_achivement ) == 'No' ) {
-			$current_visit_date = badgeos_utilities::get_user_meta( $user_id, 'badgeos_daily_visit_date', true );
-		
+			
+			$current_visit_date = get_user_meta( $user_id, 'badgeos_daily_visit_date', true );
 			$today = date("Y-m-d");
 			if( strtotime( $current_visit_date ) == strtotime( $today ) )  {
-		
-				$req_count 		= badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_count', true );
-				$daily_visits 	= badgeos_utilities::get_user_meta( $user_id, 'badgeos_daily_visits', true );
-		
+				$req_count 		= get_post_meta( $achievement_id, '_badgeos_count', true );
+				$daily_visits 	= get_user_meta( $user_id, 'badgeos_daily_visits', true );
+
 				if( intval( $req_count ) <= intval( $daily_visits ) ) {
-					$trigger_count = absint( badgeos_get_user_trigger_count( $user_id, $this_trigger, $site_id, $args ) );
 					
+					$trigger_count = absint( badgeos_get_user_trigger_count( $user_id, $this_trigger, $site_id, $args ) );
+
 					for( $i = 0; $i < intval( $req_count ); $i++) {
 						
 						/**
@@ -222,9 +184,9 @@ function badgeos_daily_visit_access( $return, $user_id, $achievement_id, $this_t
                          */
 						$user_triggers = badgeos_get_user_triggers( $user_id, false );
 						$user_triggers[$site_id][$this_trigger] = $trigger_count;
-						badgeos_utilities::update_user_meta( $user_id, '_badgeos_triggered_triggers', $user_triggers );
+						update_user_meta( $user_id, '_badgeos_triggered_triggers', $user_triggers );
 					}
-					badgeos_utilities::update_user_meta( $user_id, $meta_key, 'Yes' );
+					update_user_meta( $user_id, $meta_key, 'Yes' );
 					$return = true;
 				} else {
 					$return = false;
@@ -238,49 +200,7 @@ function badgeos_daily_visit_access( $return, $user_id, $achievement_id, $this_t
 	}
 	return $return;
 }
-add_filter( 'user_has_access_to_achievement', 'badgeos_daily_visit_access', 16, 6 );
-
-/**
- * Check if user has earned the multisteps access/earn daily visit.
- *
- * @param  integer $return        	True / False
- * @param  integer $user_id        	The given user's ID
- * @param  integer $achievement_id 	The given achievement's post ID
- * @param  string $this_trigger    	The trigger
- * @param  integer $site_id        	The triggered site id
- * @param  array $args        		The triggered args
- * @return bool                    	True if user has access, false otherwise
- */
-function badgeos_check_access_of_multi_steps( $return, $user_id, $achievement_id, $this_trigger, $site_id, $args=[] ) {
-
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if ( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $achievement_id ) )
-        return $return;
-
-    $earned_achievements = badgeos_get_user_achievements( array(
-        'user_id'          	=> $user_id,
-        'achievement_id' 	=> $achievement_id
-    ) );
-    $total_earned = count( $earned_achievements );
-
-    $children = badgeos_get_achievements( array( 'children_of' => $achievement_id, 'fields'=>'ids'  ) );
-    if( count( $children ) > 0 ) {
-        foreach( $children as $child_id ) {
-
-            $child_achievements = badgeos_get_user_achievements( array(
-                'user_id'          	=> $user_id,
-                'achievement_id' 	=> $child_id
-            ) );
-
-            if( count($child_achievements) <= $total_earned ) {
-                return false;
-            }
-        }
-    }
-
-    return $return;
-}
-add_filter( 'user_deserves_achievement', 'badgeos_check_access_of_multi_steps', 16, 6 );
+add_filter( 'badgeos_user_has_access_to_achievement', 'badgeos_daily_visit_access', 16, 6 );
 
 /**
  * Award an achievement to a user
@@ -491,7 +411,28 @@ function badgeos_maybe_award_additional_achievements_to_user( $user_id = 0, $ach
 }
 add_action( 'badgeos_award_achievement', 'badgeos_maybe_award_additional_achievements_to_user', 10, 2 );
 
+/**
+ * Update user meta to limit the repeated award process
+ *
+ * @since  1.0.0
+ * @param  integer $user_id
+ * @param  integer $achievement_id
+ * @param  integer $this_trigger
+ * @param  integer $site_id
+ * @param  integer $args
+ * @param  integer $user_id
+ * @param  integer $entry_id
+ * @return void
+ */
+function badgeos_maybe_update_submission_nomination_meta_of_user( $user_id = 0, $achievement_id = 0, $this_trigger = '', $site_id = 0, $args=array(), $entry_id = 0 ) {
+    global $wpdb;
+    if( isset( $args['submission_id'] ) && intval( $args['submission_id'] ) > 0 ) {
 
+        $strQuery = 'Update '.$wpdb->prefix."badgeos_achievements set sub_nom_id='".$args['submission_id']."' where entry_id='".$entry_id."'";
+        $wpdb->query( $strQuery );
+    }
+}
+add_action( 'badgeos_award_achievement', 'badgeos_maybe_update_submission_nomination_meta_of_user', 10, 6 );
 
 /**
  * Check if a user has unlocked all achievements of a given type
@@ -515,8 +456,8 @@ function badgeos_maybe_trigger_unlock_all( $user_id = 0, $achievement_id = 0 ) {
     }
 
     // Get the post type of the earned achievement
-    $post_type = badgeos_utilities::get_post_type( $my_ach_id );
-	$post_type = badgeos_utilities::get_post_type( $achievement_id );
+    $post_type = get_post_type( $my_ach_id );
+	$post_type = get_post_type( $achievement_id );
 
 	// Hook for unlocking all achievements of this achievement type
 	if ( $all_achievements_of_type = badgeos_get_achievements( array( 'post_type' => $post_type ) ) ) {
@@ -530,7 +471,7 @@ function badgeos_maybe_trigger_unlock_all( $user_id = 0, $achievement_id = 0 ) {
 			// Assume the user hasn't earned this achievement
 			$found_achievement = false;
 
-			// Loop through each earned achievement and see if we've earned it
+			// Loop through each eacrned achivement and see if we've earned it
 			foreach ( $earned_achievements as $earned_achievement ) {
 				if ( $earned_achievement->ID == $achievement->ID ) {
 					$found_achievement = true;
@@ -628,7 +569,7 @@ function badgeos_user_has_access_to_not_login_step( $return = false, $user_id = 
     // Prevent user from earning steps with no parents
     if( $this_trigger == 'badgeos_wp_not_login' ) {
 
-        $last_login_timestamp = badgeos_utilities::get_user_meta( $user_id, '_badgeos_last_login', true );
+        $last_login_timestamp = get_user_meta( $user_id, '_badgeos_last_login', true );
         if( !empty( $last_login_timestamp ) && intval( $last_login_timestamp ) > 0 ) {
 
             $earlier = new DateTime();
@@ -637,7 +578,7 @@ function badgeos_user_has_access_to_not_login_step( $return = false, $user_id = 
             $later = new DateTime();
 
             $days 			= $later->diff($earlier)->format("%a");
-            $num_of_days 	= badgeos_utilities::get_post_meta( $step_id, '_badgeos_num_of_days', true );
+            $num_of_days 	= get_post_meta( $step_id, '_badgeos_num_of_days', true );
             if( intval( $days ) > intval( $num_of_days ) ) {
                 $return = true;
             } else {
@@ -663,8 +604,8 @@ add_filter( 'user_has_access_to_achievement', 'badgeos_user_has_access_to_not_lo
 function badgeos_user_has_access_to_step( $return = false, $user_id = 0, $step_id = 0 ) {
 
 	// If we're not working with a step, bail here
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if ( trim( $badgeos_settings['achievement_step_post_type'] ) != badgeos_utilities::get_post_type( $step_id ) )
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
+    if ( trim( $badgeos_settings['achievement_step_post_type'] ) != get_post_type( $step_id ) )
         return $return;
 
 	// Prevent user from earning steps with no parents
@@ -698,14 +639,14 @@ add_filter( 'user_has_access_to_achievement', 'badgeos_user_has_access_to_step',
  */
 function badgeos_check_if_all_enabled( $return = false, $user_id = 0, $step_id = 0 ) {
 
-    $trigger = badgeos_utilities::get_post_meta($step_id, '_badgeos_trigger_type', true );
+    $trigger = get_post_meta($step_id, '_badgeos_trigger_type', true );
     if( $trigger == 'all-achievements' ) {
-        $type = badgeos_utilities::get_post_meta($step_id, '_badgeos_achievement_type', true );
+        $type = get_post_meta($step_id, '_badgeos_achievement_type', true );
         if( !empty( $type ) )
         {
             $userachs = badgeos_get_user_achievements( array( 'user_id' => absint( $user_id ), 'achievement_id' => absint( $step_id ) ) );
             $total_awarded = count( $userachs );
-            $req_count = badgeos_utilities::get_post_meta( $step_id, '_badgeos_count', true );
+            $req_count = get_post_meta( $step_id, '_badgeos_count', true );
 
             $times_used = intval( $req_count ) * intval( $total_awarded );
 
@@ -756,10 +697,10 @@ add_filter( 'user_has_access_to_achievement', 'badgeos_check_if_all_enabled', 15
 function badgeos_user_deserves_step( $return = false, $user_id = 0, $step_id = 0, $this_trigger = '', $site_id = 0, $args = [] ) {
 
 	// Only override the $return data if we're working on a step
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $step_id ) ) {
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
+    if( trim( $badgeos_settings['achievement_step_post_type'] ) == get_post_type( $step_id ) ) {
         // Get the required number of checkins for the step.
-        $minimum_activity_count = absint( badgeos_utilities::get_post_meta( $step_id, '_badgeos_count', true ) );
+        $minimum_activity_count = absint( get_post_meta( $step_id, '_badgeos_count', true ) );
         if( ! isset( $minimum_activity_count ) || empty( $minimum_activity_count ) )
             $minimum_activity_count = 1;
 
@@ -789,99 +730,6 @@ function badgeos_user_deserves_step( $return = false, $user_id = 0, $step_id = 0
 }
 add_filter( 'user_deserves_achievement', 'badgeos_user_deserves_step', 10, 6 );
 
-
-/**
- * Check if a user deserves a visit a post step
- *
- * @param $return
- * @param $step_id
- * @param $rank_id
- * @param $user_id
- * @param $this_trigger
- * @param $site_id
- * @param $args
- * 
- * @return bool|void
- */
-function badgeos_user_deserves_achievement_step_posts_callback($return = false, $user_id = 0, $step_id = 0, $this_trigger = '', $site_id = 0, $args = []) {
-    
-    global $wpdb, $post;
-    if( ! $return ) {
-        return false;
-    }
-	
-	// Only override the $return data if we're working on a step
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $step_id ) ) {
-		if( is_single() && ! empty( $GLOBALS['post'] ) && is_user_logged_in() ) {
-			$my_post_id = $post->ID;
-			
-			$trigger_type = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_trigger_type', true );
-			if ( $trigger_type == 'badgeos_visit_a_post' ) {
-				
-				$visit_post = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_visit_post', true );
-				if( empty( $visit_post ) ) {
-					$return = true;
-				} else {
-					if( $visit_post ==  $my_post_id ) {
-						$return = true;
-					} else {
-						$return = false;
-					}
-				}
-			}
-		}
-	}
-    return $return;
-}
-add_filter( 'user_deserves_achievement', 'badgeos_user_deserves_achievement_step_posts_callback', 10, 6 );
-
-/**
- * Check if a user deserves a visit a page step
- *
- * @param $return
- * @param $step_id
- * @param $rank_id
- * @param $user_id
- * @param $this_trigger
- * @param $site_id
- * @param $args
- * 
- * @return bool|void
- */
-function badgeos_user_deserves_achievement_step_pages_callback($return = false, $user_id = 0, $step_id = 0, $this_trigger = '', $site_id = 0, $args = []) {
-    
-    global $wpdb, $post;
-    if( ! $return ) {
-        return false;
-    }
-	
-	// Only override the $return data if we're working on a step
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $step_id ) ) {
-		if( is_page() && ! empty( $GLOBALS['post'] ) && is_user_logged_in() ) {
-			$my_post_id = $post->ID;
-			
-			$trigger_type = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_trigger_type', true );
-			if ( $trigger_type == 'badgeos_visit_a_page' ) {
-				
-				$visit_post = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_visit_page', true );
-				if( empty( $visit_post ) ) {
-					$return = true;
-				} else {
-					if( $visit_post ==  $my_post_id ) {
-						$return = true;
-					} else {
-						$return = false;
-					}
-				}
-			}
-		}
-	}
-    return $return;
-}
-add_filter( 'user_deserves_achievement', 'badgeos_user_deserves_achievement_step_pages_callback', 10, 6 );
-
 /**
  * Count a user's relevant actions for a given step
  *
@@ -898,13 +746,8 @@ function badgeos_get_step_activity_count( $user_id = 0, $step_id = 0 ) {
 	// Grab the requirements for this step
 	$step_requirements = badgeos_get_step_requirements( $step_id );
 
-    $trigger_type = $step_requirements['trigger_type'];
-    if( !empty( $step_requirements['badgeos_subtrigger_id'] ) && !empty( $step_requirements['badgeos_subtrigger_value'] ) ) {
-        $trigger_type = $step_requirements['badgeos_subtrigger_value'];
-    }
-
-    // Determine which type of trigger we're using and return the corresponding activities
-    switch( $trigger_type ) {
+	// Determine which type of trigger we're using and return the corresponding activities
+	switch( $step_requirements['trigger_type'] ) {
 		case 'specific-achievement' :
 
 			// Get our parent achievement
@@ -931,192 +774,10 @@ function badgeos_get_step_activity_count( $user_id = 0, $step_id = 0 ) {
 			$activities = badgeos_get_user_trigger_count( $user_id, 'badgeos_unlock_all_' . $step_requirements['achievement_type'] );
 			break;
 		default :
-            $activities = badgeos_get_user_trigger_count( $user_id, $trigger_type );
+			$activities = badgeos_get_user_trigger_count( $user_id, $step_requirements['trigger_type'] );
 			break;
 	}
 
 	// Available filter for overriding user activity
 	return absint( apply_filters( 'badgeos_step_activity', $activities, $user_id, $step_id ) );
-}
-
-/**
- * Check if a user deserves a award author on visit a post step
- *
- * @param $return
- * @param $step_id
- * @param $rank_id
- * @param $user_id
- * @param $this_trigger
- * @param $site_id
- * @param $args
- * 
- * @return bool|void
- */
-function badgeos_user_deserves_award_achievement_to_author_on_visit_a_post($return = false, $user_id = 0, $step_id = 0, $this_trigger = '', $site_id = 0, $args = []) {
-    
-    global $wpdb, $post;
-    if( ! $return ) {
-        return false;
-    }
-	
-	// Only override the $return data if we're working on a step
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $step_id ) ) {
-		if( is_single() && ! empty( $GLOBALS['post'] )) {
-			$my_post_id = $post->ID;
-			$trigger_type = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_trigger_type', true );
-			if ( $trigger_type == 'badgeos_award_author_on_visit_post' ) {
-				$visit_post = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_visit_post', true );
-				if( empty( $visit_post ) ) {
-					$return = true;
-				} else {
-					if( $visit_post ==  $my_post_id ) {
-						$return = true;
-					} else {
-						$return = false;
-					}
-				}
-			}
-		}
-	}
-
-    return $return;
-}
-add_filter( 'user_deserves_achievement', 'badgeos_user_deserves_award_achievement_to_author_on_visit_a_post', 10, 6 );
-
-/**
- * Check if a user deserves a visit a page step
- *
- * @param $return
- * @param $step_id
- * @param $rank_id
- * @param $user_id
- * @param $this_trigger
- * @param $site_id
- * @param $args
- * 
- * @return bool|void
- */
-function badgeos_user_deserves_award_achievement_to_author_on_visit_a_page($return = false, $user_id = 0, $step_id = 0, $this_trigger = '', $site_id = 0, $args = []) {
-    
-    global $wpdb, $post;
-    if( ! $return ) {
-        return false;
-    }
-	
-	// Only override the $return data if we're working on a step
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $step_id ) ) {
-		if( is_page() && ! empty( $GLOBALS['post'] ) ) {
-			$my_post_id = $post->ID;
-			
-			$trigger_type = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_trigger_type', true );
-			if ( $trigger_type == 'badgeos_award_author_on_visit_page' ) {
-				
-				$visit_post = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_visit_page', true );
-				if( empty( $visit_post ) ) {
-					$return = true;
-				} else {
-					if( $visit_post ==  $my_post_id ) {
-						$return = true;
-					} else {
-						$return = false;
-					}
-				}
-			}
-		}
-	}
-    return $return;
-}
-add_filter( 'user_deserves_achievement', 'badgeos_user_deserves_award_achievement_to_author_on_visit_a_page', 10, 6 );
-
-/**
- * Check if a user deserves a number of years trigger step
- *
- * @param $return
- * @param $step_id
- * @param $rank_id
- * @param $user_id
- * @param $this_trigger
- * @param $site_id
- * @param $args
- * 
- * @return bool|void
- */
-function badgeos_user_deserves_award_number_of_year_since_trigger($return = false, $user_id = 0, $step_id = 0, $this_trigger = '', $site_id = 0, $args = []) {
-    
-	global $wpdb, $post;
-    if( ! $return ) {
-        return false;
-    }
-	
-	// Only override the $return data if we're working on a step
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    if( trim( $badgeos_settings['achievement_step_post_type'] ) == badgeos_utilities::get_post_type( $step_id ) ) {
-		$trigger_type = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_trigger_type', true );
-		if ( $trigger_type == 'badgeos_on_completing_num_of_year' ) {
-
-			$reg_date = get_userdata($user_id)->user_registered;
-			$num_of_years = badgeos_utilities::get_post_meta( absint( $step_id ), '_badgeos_num_of_years', true );
-			$strQuery = "select * from ".$wpdb->prefix . "badgeos_achievements where ID='".$step_id."' and user_id='".$user_id."' order by actual_date_earned desc limit 1";
-			$achivements = $wpdb->get_results( $strQuery );
-			$return = false;
-			if( count($achivements) > 0) {
-				$reg_date = strtotime( "+".$num_of_years." year", strtotime( $achivements[0]->actual_date_earned ) );
-				if( time() > $reg_date ) {
-					$GLOBALS['badgeos']->achievement_date = date( 'Y-m-d H:i:s', $reg_date);
-					$return = true;	
-				} 
-			} else if( intval( $num_of_years ) > 0 ) {
-
-				$reg_date = strtotime( "+".$num_of_years." year", strtotime( $reg_date ) );
-				if( time() > $reg_date ) {
-					$GLOBALS['badgeos']->achievement_date = date( 'Y-m-d H:i:s', $reg_date );
-					$return = true;	
-				}
-			}
-		}
-	}
-
-    return $return;
-}
-add_filter( 'user_deserves_achievement', 'badgeos_user_deserves_award_number_of_year_since_trigger', 10, 6 );
-
-/**
- * Returns the wordpress date time
- *
- * @param $timestamp
- * 
- * @return $timestamp
- */
-function badgeos_default_datetime( $type='' ) {
-	
-	$timestamp = current_time( 'mysql' );
-
-	if( ! empty( $type ) && ! empty( $timestamp ) ) {
-		switch( $type ) {
-			case "mysql_achievements":
-				if( ! empty( $GLOBALS['badgeos']->achievement_date ) )
-					$timestamp = $GLOBALS['badgeos']->achievement_date;
-				$GLOBALS['badgeos']->achievement_date = '';
-				break;
-			case "mysql_award_points":
-				if( ! empty( $GLOBALS['badgeos']->mysql_award_points ) )
-					$timestamp = $GLOBALS['badgeos']->mysql_award_points;
-				$GLOBALS['badgeos']->mysql_award_points = '';
-				break;
-			case "mysql_deduct_points":
-				if( ! empty( $GLOBALS['badgeos']->mysql_deduct_points ) )
-					$timestamp = $GLOBALS['badgeos']->mysql_deduct_points;
-				$GLOBALS['badgeos']->mysql_deduct_points = '';
-				break;
-			case "mysql_ranks":
-				if( ! empty( $GLOBALS['badgeos']->rank_date ) )
-					$timestamp = $GLOBALS['badgeos']->rank_date;
-				$GLOBALS['badgeos']->rank_date = '';
-				break;
-		}
-	}
-
-	return $timestamp;
 }

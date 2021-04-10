@@ -2,13 +2,14 @@
 /**
 * Plugin Name: BadgeOS
 * Plugin URI: http://www.badgeos.org/
-* Description: BadgeOS lets your site’s users complete tasks and earn badges, ranks, and points that recognize their achievement. Define achievements and choose from a range of options that determine when they're complete. Badges are Mozilla Open Badges (OBI) compatible so the users can easily validate the earned badges.
+* Description: BadgeOS lets your site’s users complete tasks and earn badges that recognize their achievement.  Define achievements and choose from a range of options that determine when they're complete.  Badges are Mozilla Open Badges (OBI) compatible through integration with the “Open Credit” API by Credly, the free web service for issuing, earning and sharing badges for lifelong achievement.
 * Author: LearningTimes
-* Version: 3.6.9
+* Version: 3.4
 * Author URI: https://credly.com/
 * License: GNU AGPL
 * Text Domain: badgeos
 */
+
 /*
 Copyright © 2012-2014 LearningTimes, LLC
 
@@ -32,43 +33,15 @@ class BadgeOS {
 	 *
 	 * @var string
 	 */
-	public static $version = '3.6.9';
+	public static $version = '3.4';
 
-	/**
-	 * BadgeOS Achievement Date
-	 *
-	 * @var string
-	 */
-	public $achievement_date;
-
-	/**
-	 * BadgeOS Rank Date
-	 *
-	 * @var string
-	 */
-	public $rank_date;
-
-	/**
-	 * BadgeOS Point Award Date
-	 *
-	 * @var string
-	 */
-	public $mysql_award_points;
-
-	/**
-	 * BadgeOS Point Deduct Date
-	 *
-	 * @var string
-	 */
-	public $mysql_deduct_points;
-	
 	function __construct() {
 		// Define plugin constants
 		$this->basename       = plugin_basename( __FILE__ );
 		$this->directory_path = plugin_dir_path( __FILE__ );
 		$this->directory_url  = plugin_dir_url( __FILE__ );
 
-        $this->start_time	  = current_time( 'timestamp' ) - 5 ;
+        $this->start_time	  = strtotime(" -1 second ");
 
         $this->award_ids  = array();
 
@@ -88,33 +61,16 @@ class BadgeOS {
 		add_action( 'admin_menu', array( $this, 'plugin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
+		add_action( 'init', array( $this, 'credly_init' ) );
 		
-		require_once( $this->directory_path . 'includes/utilities.php' );
-		$badgeos_db_update_v_338 = ( $exists = badgeos_utilities::get_option( 'badgeos_db_update_v_338' ) ) ? $exists : 'No';
-		if(  $badgeos_db_update_v_338 != 'Yes' ) 
-		{
-			$this->db_upgrade();
-		}
+		$this->db_upgrade();
 
         //add action for adding ckeditor script
         add_action('wp_footer', array( $this, 'frontend_scripts' ));
-		
-		if( ! is_network_admin() ) {
-			//Template redirect hook
-			add_action( 'activated_plugin', array( $this, 'activation_redirect' ), 10, 2 );
-		}
+
 	}
 
-	/**
-	 * This function will redirect to templates on activation
-	 */
-	function activation_redirect( $plugin, $network_wide ) {
-		if( trim( $this->basename ) == trim( $plugin ) ) {
-			exit( wp_redirect( 'admin.php?page=badgeos-welcome'  ) );
-		}
-	}
-
-	/**
+/**
 	 * This function will made the necessary changes on existing database to accomodate the points work
 	 */
 	function db_upgrade() {
@@ -122,6 +78,7 @@ class BadgeOS {
 		global $wpdb;
 
 		$point_type = 'point_type';
+		
 		$table_name = $wpdb->prefix . "badgeos_achievements";
 		if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
 			$sql = "CREATE TABLE " . $table_name . " (
@@ -137,7 +94,6 @@ class BadgeOS {
 				`this_trigger` varchar(100) DEFAULT NULL,
 				`image` varchar(50) DEFAULT NULL,
 				`site_id` int(10) DEFAULT '0',
-				`actual_date_earned` timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP,						
 				`date_earned` timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP,						
 				PRIMARY KEY (`entry_id`)
 			);";
@@ -145,11 +101,11 @@ class BadgeOS {
 		}
 
 		/**
-         * BadgeOS Points Table
+         * Badgeos Points Table
          */
 		$table_name = $wpdb->prefix . 'badgeos_points';
 		if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
-			$sql = "CREATE TABLE ".$table_name." (
+			$sql = "CREATE TABLE " . $table_name . " (
 				`id` int(10) NOT NULL AUTO_INCREMENT,
 				`achievement_id` int(10) DEFAULT '0',
 				`credit_id` int(10) DEFAULT '0',
@@ -159,7 +115,6 @@ class BadgeOS {
 				`type` enum('Award','Deduct','Utilized') DEFAULT NULL,
 				`this_trigger` varchar(100) DEFAULT NULL,
 				`credit` int(10) DEFAULT NULL,
-				`actual_date_earned` timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP,
 				`dateadded` timestamp NULL DEFAULT NULL,							
 				PRIMARY KEY (`id`)
 			);";
@@ -179,45 +134,34 @@ class BadgeOS {
 				`admin_id` int(10) DEFAULT '0',
 				`this_trigger` varchar(100) DEFAULT NULL,
 				`priority` int(10) NOT NULL,
-				`actual_date_earned` timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP,
 				`dateadded` timestamp NULL DEFAULT NULL,							
 				PRIMARY KEY (`id`)
 			);";
 			$wpdb->query( $sql );
 		}
-		
-		require_once( $this->directory_path . 'includes/utilities.php' );
-		$table_name = $wpdb->prefix . 'p2p';
-		if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
-			badgeos_utilities::update_option( 'p2p_storage', '' );
-		}
-		// Setup default BadgeOS options
-		$badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-        $badgeos_admin_tools = ( $exists = badgeos_utilities::get_option( 'badgeos_admin_tools' ) ) ? $exists : array();
-        
-        $row = $wpdb->get_results(  "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '".$wpdb->prefix."badgeos_achievements' AND column_name = 'sub_nom_id'"  );
+
+        // Setup default BadgeOS options
+		$badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
+
+        if( !isset( $badgeos_settings['achievement_step_post_type'] ) || empty( $badgeos_settings['achievement_step_post_type'] ) || !isset( $badgeos_settings['achievement_main_post_type'] ) || empty( $badgeos_settings['achievement_main_post_type'] ) ) {
+
+            if( ! isset( $badgeos_settings['achievement_step_post_type'] ) || empty( $badgeos_settings['achievement_step_post_type'] ) ) {
+                $badgeos_settings['achievement_step_post_type']     = 'step';
+            }
+
+            if( ! isset( $badgeos_settings['achievement_main_post_type'] ) || empty( $badgeos_settings['achievement_main_post_type'] ) ) {
+                $badgeos_settings['achievement_main_post_type']     = 'achievement-type';
+            }
+
+            update_option( 'badgeos_settings', $badgeos_settings );
+        }
+
+        $row = $wpdb->get_results(  "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '".$wpdb->prefix . "badgeos_achievements' AND column_name = 'sub_nom_id'"  );
         if(empty($row)){
             $wpdb->query("ALTER TABLE ".$wpdb->prefix . "badgeos_achievements ADD sub_nom_id int(10) DEFAULT '0'");
-		}
-		
-		//actuall date earned field on all of the tables
-		$row = $wpdb->get_results(  "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '".$wpdb->prefix."badgeos_achievements' AND column_name = 'actual_date_earned'"  );
-        if(empty($row)){
-            $wpdb->query("ALTER TABLE ".$wpdb->prefix . "badgeos_achievements ADD actual_date_earned timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP");
-		}
-		
-		$row = $wpdb->get_results(  "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '".$wpdb->prefix."badgeos_points' AND column_name = 'actual_date_earned'"  );
-        if(empty($row)){
-            $wpdb->query("ALTER TABLE ".$wpdb->prefix . "badgeos_points ADD actual_date_earned timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP");
-		}
-		
-		$row = $wpdb->get_results(  "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '".$wpdb->prefix."badgeos_ranks' AND column_name = 'actual_date_earned'"  );
-        if(empty($row)){
-            $wpdb->query("ALTER TABLE ".$wpdb->prefix . "badgeos_ranks ADD actual_date_earned timestamp NULL DEFAULT NULL DEFAULT CURRENT_TIMESTAMP");
         }
-		////////////////////////////////////////////////
 
-        $badgeos_rec_title_updated = ( $exists = badgeos_utilities::get_option( 'badgeos_rec_title_updated' ) ) ? $exists : 'No';
+        $badgeos_rec_title_updated = ( $exists = get_option( 'badgeos_rec_title_updated' ) ) ? $exists : 'No';
         if( $badgeos_rec_title_updated == 'No' ) {
 
             $strQuery = 'ALTER TABLE '.$wpdb->prefix . 'badgeos_achievements MODIFY achievement_title TEXT DEFAULT NULL;';
@@ -226,139 +170,39 @@ class BadgeOS {
             $strQuery = 'ALTER TABLE '.$wpdb->prefix . 'badgeos_ranks MODIFY rank_title TEXT DEFAULT NULL;';
             $wpdb->query( $strQuery );
 
-            badgeos_utilities::update_option( 'badgeos_rec_title_updated', 'Yes' );
+            update_option( 'badgeos_rec_title_updated', 'Yes' );
         }
 
-		// Setup default BadgeOS options
-		
-		if ( empty( $badgeos_settings ) ) {
-			$badgeos_settings['minimum_role']     				= 'manage_options';
-            $badgeos_settings['submission_manager_role'] 		= 'manage_options';
-            $badgeos_settings['submission_email'] 				= 'enabled';
-            $badgeos_settings['debug_mode']       				= 'disabled';
-            $badgeos_settings['achievement_main_post_type']     = 'achievement-type';
-            $badgeos_settings['achievement_step_post_type']     = 'step';
-			$badgeos_settings['minimum_role']     				= 'manage_options';
-            $badgeos_settings['submission_manager_role'] 		= 'manage_options';
-            $badgeos_settings['submission_email'] 				= 'enabled';
-            $badgeos_settings['debug_mode']       				= 'disabled';
-            $badgeos_settings['ranks_main_post_type']       	= 'rank_types';
-            $badgeos_settings['ranks_step_post_type']       	= 'rank_requirement';
+        if ( $badgeos_settings ) {
 
-            $badgeos_settings['points_main_post_type']     		= $point_type;
-            $badgeos_settings['points_award_post_type']    		= 'point_award';
-            $badgeos_settings['points_deduct_post_type']   		= 'point_deduct';
-			$badgeos_settings['date_of_birth_from']   			= 'profile';
-            $badgeos_settings['remove_data_on_uninstall']   	= null;
+            if( ! isset( $badgeos_settings['ranks_main_post_type'] ) && empty( $badgeos_settings['ranks_main_post_type'] )  )
+                $badgeos_settings['ranks_main_post_type']       = 'rank_types';
 
-            $badgeos_settings['badgeos_achievement_global_image_width']    	= '50';
-            $badgeos_settings['badgeos_achievement_global_image_height']    = '50';
-            $badgeos_settings['badgeos_rank_global_image_width']    		= '50';
-            $badgeos_settings['badgeos_rank_global_image_height']    		= '50';
-			$badgeos_settings['badgeos_point_global_image_width']    		= '32';
-            $badgeos_settings['badgeos_point_global_image_height']    		= '32';
-			badgeos_utilities::update_option( 'badgeos_settings', $badgeos_settings );
+            if(  !isset( $badgeos_settings['ranks_step_post_type'] ) && empty( $badgeos_settings['ranks_step_post_type'] ) )
+                $badgeos_settings['ranks_step_post_type']       = 'rank_requirement';
+
+            if(  !isset( $badgeos_settings['points_main_post_type'] ) && empty( $badgeos_settings['points_main_post_type'] ) )
+				$badgeos_settings['points_main_post_type']     = $point_type;
+
+			if( !isset( $badgeos_settings['points_award_post_type'] ) && empty( $badgeos_settings['points_award_post_type'] ) )
+				$badgeos_settings['points_award_post_type']    = 'point_award';
+
+			if( !isset( $badgeos_settings['points_deduct_post_type'] ) && empty( $badgeos_settings['points_deduct_post_type'] ) )
+				$badgeos_settings['points_deduct_post_type']   = 'point_deduct';
+
+			update_option( 'badgeos_settings', $badgeos_settings );
 		}
-
-        if ( empty( $badgeos_admin_tools ) ) {
-            $badgeos_admin_tools['badgeos_tools_email_logo_url']   = '';
-            $badgeos_admin_tools['badgeos_tools_email_logo_dir']   = '';
-			$badgeos_admin_tools['email_general_footer_text']   = '';
-			$badgeos_admin_tools['allow_unsubscribe_email']   = 'No';
-			$badgeos_admin_tools['unsubscribe_email_page']   = '0';
-            $badgeos_admin_tools['email_general_from_name']   = get_bloginfo( 'name' );
-			$badgeos_admin_tools['email_general_from_email']   = get_bloginfo( 'admin_email' );
-			$badgeos_admin_tools['email_general_cc_list']   = '';
-			$badgeos_admin_tools['email_general_bcc_list']   = '';
-
-			$badgeos_admin_tools['email_general_background_color']   		= '#ffffff';
-			$badgeos_admin_tools['email_general_body_background_color']   	= '#f6f6f6';
-			$badgeos_admin_tools['email_general_body_text_color']   		= '#000000';
-			$badgeos_admin_tools['email_general_footer_background_color']   = '#ffffff';
-			$badgeos_admin_tools['email_general_footer_text_color']   		= '#000000';
-
-            $badgeos_admin_tools['email_disable_earned_achievement_email']   = 'yes';
-            $badgeos_admin_tools['email_achievement_subject']   = __( 'Congratulation for earning an achievement', 'badgeos' );
-			$badgeos_admin_tools['email_achievement_cc_list']   = '';
-			$badgeos_admin_tools['email_achievement_bcc_list']   = '';
-            $email_achievement_content =  '<p>'.__( 'Dear', 'badgeos' ).' [user_name]</p>';
-            $email_achievement_content .= '<p>'.__( 'You have earned a new achievement i.e. "[achievement_title]". [points] points are also added in your point balance.', 'badgeos' ).'</p>';
-            $email_achievement_content .= '<p>[achievement_image]</p>';
-            $badgeos_admin_tools['email_achievement_content']   = $email_achievement_content;
-
-            $badgeos_admin_tools['email_disable_achievement_steps_email']   = 'yes';
-            $badgeos_admin_tools['email_steps_achievement_subject']   = __( 'Congratulation for earning an achievement step', 'badgeos' );
-			$badgeos_admin_tools['email_achievement_steps_cc_list']   = '';
-			$badgeos_admin_tools['email_achievement_steps_bcc_list']   = '';
-            $email_steps_achievement_content =  '<p>'.__( 'Dear', 'badgeos' ).' [user_name]</p>';
-            $email_steps_achievement_content .= '<p>'.__( 'You have earned a new achievement step i.e. "[step_title]".', 'badgeos' ).'</p>';
-            $email_steps_achievement_content .= '<p>'.__( 'Thanks.', 'badgeos' ).'</p>';
-            $badgeos_admin_tools['email_steps_achievement_content']   = $email_steps_achievement_content;
-
-            $badgeos_admin_tools['email_disable_ranks_email']   = 'yes';
-            $badgeos_admin_tools['email_ranks_subject']   = __( 'Congratulation for earning a rank', 'badgeos' );
-			$badgeos_admin_tools['email_ranks_cc_list']   = '';
-			$badgeos_admin_tools['email_ranks_bcc_list']   = '';
-            $email_ranks_content =  '<p>'.__( 'Dear', 'badgeos' ).' [user_name]</p>';
-            $email_ranks_content .= '<p>'.__( 'You have earned a new rank i.e. "[rank_title]".', 'badgeos' ).'</p>';
-            $email_ranks_content .= '<p>'.__( 'Thanks.', 'badgeos' ).'</p>';
-            $badgeos_admin_tools['email_ranks_content']   = $email_ranks_content;
-
-            $badgeos_admin_tools['email_disable_rank_steps_email']   = 'yes';
-            $badgeos_admin_tools['email_steps_rank_subject']   = __( 'Congratulation for earning a rank step', 'badgeos' );
-			$badgeos_admin_tools['email_ranks_steps_cc_list']   = '';
-			$badgeos_admin_tools['email_ranks_steps_bcc_list']   = '';
-            $email_steps_rank_content =  '<p>'.__( 'Dear', 'badgeos' ).' [user_name]</p>';
-            $email_steps_rank_content .= '<p>'.__( 'You have earned a new rank step i.e. "[rank_step_title]".', 'badgeos' ).'</p>';
-            $email_steps_rank_content .= '<p>'.__( 'Thanks.', 'badgeos' ).'</p>';
-            $badgeos_admin_tools['email_steps_rank_content']   = $email_steps_rank_content;
-            $badgeos_admin_tools['email_disable_point_awards_email']   = 'yes';
-            $badgeos_admin_tools['email_point_awards_subject']   = __( 'Congratulation for earning new points', 'badgeos' );
-
-            $email_point_awards_content =  '<p>'.__( 'Dear', 'badgeos' ).' [user_name]</p>';
-            $email_point_awards_content .= '<p>'.__( 'You have earned [credit] [point_title] at [date_earned].', 'badgeos' ).'</p>';
-            $email_point_awards_content .= '<p>'.__( 'Thanks.', 'badgeos' ).'</p>';
-            $badgeos_admin_tools['email_point_awards_content']   = $email_point_awards_content;
-			$badgeos_admin_tools['email_point_awards_cc_list']   = '';
-			$badgeos_admin_tools['email_point_awards_bcc_list']   = '';
-
-            $badgeos_admin_tools['email_disable_point_deducts_email']   = 'yes';
-            $badgeos_admin_tools['email_point_deducts_subject']   = '[credit] [point_title] '.__( 'are deducted', 'badgeos' );
-            $email_point_deducts_content =  '<p>'.__( 'Dear', 'badgeos' ).' [user_name]</p>';
-            $email_point_deducts_content .= '<p>[credit] [point_title] '.__( 'are deducted from your balace at', 'badgeos' ).' [date_earned].</p>';
-            $email_point_deducts_content .= '<p>'.__( 'Thanks.', 'badgeos' ).'</p>';
-            $badgeos_admin_tools['email_point_deducts_content']   = $email_point_deducts_content;
-			$badgeos_admin_tools['email_point_deducts_cc_list']          = '';
-            $badgeos_admin_tools['email_point_deducts_bcc_list']         = '';
-
-			badgeos_utilities::update_option( 'badgeos_admin_tools', $badgeos_admin_tools );
-		}
-		
-		badgeos_utilities::update_option( 'badgeos_db_update_v_338', 'Yes' );
-    }
+	}
 
 	/**
 	 * Include all our important files.
 	 */
 	function includes() {
-
-        global $wp_version;
-
 		require_once( $this->directory_path . 'includes/p2p/load.php' );
 		require_once( $this->directory_path . 'includes/class.BadgeOS_Editor_Shortcodes.php' );
 		require_once( $this->directory_path . 'includes/class.BadgeOS_Plugin_Updater.php' );
 		require_once( $this->directory_path . 'includes/class.BadgeOS_Shortcode.php' );
-		require_once( $this->directory_path . 'includes/utilities.php' );
-
-        /**
-         * WP blocks (page builder)
-         */
-        if (version_compare($wp_version, '5.0.0') >= 0) {
-            require_once( $this->directory_path . 'includes/blocks/block-routes.php' );
-            require_once( $this->directory_path . 'includes/blocks/blocks.php' );
-            require_once( $this->directory_path . 'includes/blocks/src/init.php' );
-        }
-		
+		require_once( $this->directory_path . 'includes/class.Credly_Badge_Builder.php' );
 		require_once( $this->directory_path . 'includes/post-types.php' );
 		require_once( $this->directory_path . 'includes/admin-settings.php' );
         require_once( $this->directory_path . 'includes/admin-tools.php' );
@@ -369,7 +213,7 @@ class BadgeOS {
 		require_once( $this->directory_path . 'includes/meta-boxes.php' );
 		
 		/**
-		 * Move achievements from meta to db
+		 * Move achivements from meta to db
 		 */
 		require_once( $this->directory_path . 'includes/meta-to-db.php' );
         require_once( $this->directory_path . 'includes/achievement-upgrade.php' );
@@ -391,13 +235,7 @@ class BadgeOS {
 		require_once( $this->directory_path . 'includes/ranks/rank-functions.php' );
 		require_once( $this->directory_path . 'includes/ranks/post-types.php' );
 		require_once( $this->directory_path . 'includes/ranks/meta-boxes.php' );
-
-        require_once( $this->directory_path . 'includes/open_badge/install-default-pages.php' );
-        require_once( $this->directory_path . 'includes/open_badge/functions.php' );
-        require_once( $this->directory_path . 'includes/open_badge/class-open-badge.php' );
-        require_once( $this->directory_path . 'includes/open_badge/ob-metabox.php' );
-
-        require_once( $this->directory_path . 'includes/ranks/rank-steps-ui.php' );
+		require_once( $this->directory_path . 'includes/ranks/rank-steps-ui.php' );
 		require_once( $this->directory_path . 'includes/ranks/triggers.php' );
 		require_once( $this->directory_path . 'includes/ranks/ranks-rules-engine.php' );
 		
@@ -405,15 +243,13 @@ class BadgeOS {
         require_once( $this->directory_path . 'includes/steps-ui.php' );
 		require_once( $this->directory_path . 'includes/shortcodes.php' );
 		require_once( $this->directory_path . 'includes/content-filters.php' );
-		
+		require_once( $this->directory_path . 'includes/submission-actions.php' );
 		require_once( $this->directory_path . 'includes/rules-engine.php' );
 		require_once( $this->directory_path . 'includes/user.php' );
-        require_once( $this->directory_path . 'includes/open_badge/ob-integrations.php' );
+		require_once( $this->directory_path . 'includes/credly.php' );
+		require_once( $this->directory_path . 'includes/credly-badge-builder.php' );
 		require_once( $this->directory_path . 'includes/widgets.php' );
         require_once( $this->directory_path . 'includes/posts-functions.php' );
-		require_once( $this->directory_path . 'includes/badgeos-emails.php' );
-		require_once( $this->directory_path . 'includes/assets.php' );
-		require_once( $this->directory_path . 'includes/welcome.php' );
 	}
 
 	/**
@@ -423,19 +259,13 @@ class BadgeOS {
 	 */
 	function register_scripts_and_styles() {
 		// Register scripts
+        wp_register_script( 'badgeos-admin-tools-js', $this->directory_url . 'js/tools.js', array( 'jquery', 'jquery-ui-tabs' ), $this::$version, true );
+        wp_register_script( 'badgeos-admin-js', $this->directory_url . 'js/admin.js', array( 'jquery', 'jquery-ui-tabs' ), $this::$version, true );
+        wp_register_script( 'badgeos-credly', $this->directory_url . 'js/credly.js' );
+		wp_register_script( 'badgeos-achievements', $this->directory_url . 'js/badgeos-achievements.js', array( 'jquery' ), $this::$version, true );
+		wp_register_script( 'credly-badge-builder', $this->directory_url . 'js/credly-badge-builder.js', array( 'jquery' ), $this::$version, true );
 
-		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-        wp_register_script( 'badgeos-admin-tools-js', $this->directory_url . "js/tools$min.js", array( 'jquery', 'jquery-ui-tabs' ), $this::$version, true );
-        wp_register_script( 'badgeos-admin-js', $this->directory_url . "js/admin$min.js", array( 'jquery', 'jquery-ui-tabs' ), $this::$version, true );
-        wp_enqueue_style('badgeos-font-awesome', '//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
-        wp_register_script( 'badgeos-achievements', $this->directory_url . "js/badgeos-achievements$min.js", array( 'jquery' ), $this::$version, true );
-        wp_register_script( 'badgeos-ob-integrations', $this->directory_url . "js/ob-integrations$min.js", array( 'jquery' ), $this::$version, true );
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-
-        $badgeos_tools_email_tab = '';
-        if( isset( $_REQUEST['badgeos_tools_email_tab'] ) && !empty( $_REQUEST['badgeos_tools_email_tab'] ) ) {
-            $badgeos_tools_email_tab = $_REQUEST['badgeos_tools_email_tab'];
-        }
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 
         $admin_js_translation_array = array(
             'ajax_url' 					=> admin_url( 'admin-ajax.php' ),
@@ -448,37 +278,27 @@ class BadgeOS {
             'default_rank'              => __( 'Default Rank', 'badgeos' ),
             'achievement_post_type'     => $badgeos_settings['achievement_main_post_type'],
             'achievement_step_type'     => $badgeos_settings['achievement_step_post_type'],
-            'badgeos_tools_email_tab'   => $badgeos_tools_email_tab
 
         );
         wp_localize_script( 'badgeos-admin-js', 'admin_js', $admin_js_translation_array );
 
 		// Register styles
-        wp_register_style( 'badgeos-jquery-ui-styles', $this->directory_url . "css/jquery-ui$min.css" );
-		wp_register_script('badgeos-jquery-ui-js', ('https://code.jquery.com/ui/1.12.1/jquery-ui.js'),"jquery", self::$version, true);
-		
-		wp_register_style( 'badgeos-jquery-slick-styles', $this->directory_url . "js/slick/slick$min.css" );
-		wp_register_style( 'badgeos-jquery-slick-theme-styles', $this->directory_url . "js/slick/slick-theme$min.css" );
-		wp_register_script('badgeos-jquery-slick-js', $this->directory_url . "js/slick/slick$min.js","jquery", self::$version, true);
-		wp_register_script('badgeos-jquery-welcome-js', $this->directory_url . "js/welcome$min.js","jquery", self::$version, true);
-
-		wp_register_script('badgeos-jquery-mini-colorpicker-js', $this->directory_url . "js/jquery.minicolors$min.js","jquery", self::$version, true);
-		wp_register_style( 'badgeos-minicolorpicker_css', $this->directory_url."css/jquery.minicolors$min.css", null, '' );
-        wp_register_style( 'badgeos-admin-styles', $this->directory_url . "css/admin$min.css", null, '' );
+        wp_register_style( 'jquery-ui-styles', $this->directory_url . 'css/jquery-ui.css' );
+		wp_register_style( 'badgeos-admin-styles', $this->directory_url . 'css/admin.css' );
 
 		$badgeos_front = file_exists( get_stylesheet_directory() .'/badgeos.css' )
 			? get_stylesheet_directory_uri() .'/badgeos.css'
-			: $this->directory_url . "css/badgeos-front$min.css";
+			: $this->directory_url . 'css/badgeos-front.css';
 		wp_register_style( 'badgeos-front', $badgeos_front, null, $this::$version );
 
 		$badgeos_single = file_exists( get_stylesheet_directory() .'/badgeos-single.css' )
 			? get_stylesheet_directory_uri() .'/badgeos-single.css'
-			: $this->directory_url . "css/badgeos-single$min.css";
+			: $this->directory_url . 'css/badgeos-single.css';
 		wp_register_style( 'badgeos-single', $badgeos_single, null, $this::$version );
 
 		$badgeos_widget = file_exists( get_stylesheet_directory() .'/badgeos-widgets.css' )
 			? get_stylesheet_directory_uri() .'/badgeos-widgets.css'
-			: $this->directory_url . "css/badgeos-widgets$min.css";
+			: $this->directory_url . 'css/badgeos-widgets.css';
 		wp_register_style( 'badgeos-widget', $badgeos_widget, null, $this::$version );
 	}
 
@@ -502,7 +322,7 @@ class BadgeOS {
 
 		// Grab all our registered achievement types and loop through them
 		$achievement_types = badgeos_get_achievement_types_slugs();
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 
 		if ( is_array( $achievement_types ) && ! empty( $achievement_types ) ) {
 			foreach ( $achievement_types as $achievement_type ) {
@@ -548,26 +368,14 @@ class BadgeOS {
 	 * Register custom WordPress image size(s)
 	 */
 	function register_image_sizes() {
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-
-        $achievement_width = '50';
-        if( isset( $badgeos_settings['badgeos_achievement_global_image_width'] ) && intval( $badgeos_settings['badgeos_achievement_global_image_width'] ) > 0 ) {
-            $achievement_width = intval( $badgeos_settings['badgeos_achievement_global_image_width'] );
-        }
-
-        $achievement_height = '50';
-        if( isset( $badgeos_settings['badgeos_achievement_global_image_height'] ) && intval( $badgeos_settings['badgeos_achievement_global_image_height'] ) > 0 ) {
-            $achievement_height = intval( $badgeos_settings['badgeos_achievement_global_image_height'] );
-        }
-		
-        add_image_size( 'boswp-badgeos-achievement', $achievement_width, $achievement_height );
-    }
+		add_image_size( 'badgeos-achievement', 100, 100 );
+	}
 
 	/**
 	 * Activation hook for the plugin.
 	 */
 	function activate() {
- 
+
 		// Include our important bits
 		$this->includes();
         $point_type = 'point_type';
@@ -583,14 +391,14 @@ class BadgeOS {
 				'post_author'  => 1,
 				'post_type'    => $achievement_type,
 			) );
-			badgeos_utilities::update_post_meta( $badge_post_id, '_badgeos_singular_name', __( 'Badge', 'badgeos' ) );
-			badgeos_utilities::update_post_meta( $badge_post_id, '_badgeos_show_in_menu', true );
+			update_post_meta( $badge_post_id, '_badgeos_singular_name', __( 'Badge', 'badgeos' ) );
+			update_post_meta( $badge_post_id, '_badgeos_show_in_menu', true );
 		}
 
 		// Setup default BadgeOS options
-		$badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+		$badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 		if ( empty( $badgeos_settings ) ) {
-			$badgeos_settings['minimum_role']     				= 'manage_options';
+			$badgeos_settings['minimum_role']     = 'manage_options';
             $badgeos_settings['submission_manager_role'] 		= 'manage_options';
             $badgeos_settings['submission_email'] 				= 'enabled';
             $badgeos_settings['debug_mode']       				= 'disabled';
@@ -604,17 +412,27 @@ class BadgeOS {
             $badgeos_settings['points_deduct_post_type']   		= 'point_deduct';
 
             $badgeos_settings['remove_data_on_uninstall']   	= null;
-			$badgeos_settings['date_of_birth_from']   			= 'profile';
-            $badgeos_settings['badgeos_achievement_global_image_width']    	= '50';
-            $badgeos_settings['badgeos_achievement_global_image_height']    = '50';
-            $badgeos_settings['badgeos_rank_global_image_width']    		= '50';
-            $badgeos_settings['badgeos_rank_global_image_height']    		= '50';
 
-            badgeos_utilities::update_option( 'badgeos_settings', $badgeos_settings );
+            update_option( 'badgeos_settings', $badgeos_settings );
+		}
+
+		// Setup default Credly options
+		$credly_settings = (array) get_option( 'credly_settings', array() );
+
+		if ( empty( $credly_settings ) || !isset( $credly_settings[ 'credly_enable' ] ) ) {
+			$credly_settings['credly_enable']                      = 'true';
+			$credly_settings['credly_badge_title']                 = 'post_title';
+			$credly_settings['credly_badge_description']           = 'post_body';
+			$credly_settings['credly_badge_short_description']     = 'post_excerpt';
+			$credly_settings['credly_badge_criteria']              = '';
+			$credly_settings['credly_badge_image']                 = 'featured_image';
+			$credly_settings['credly_badge_testimonial']           = 'congratulations_text';
+			$credly_settings['credly_badge_evidence']              = 'permalink';
+			$credly_settings['credly_badge_sendemail_add_message'] = 'false';
+			update_option( 'credly_settings', $credly_settings );
 		}
 		
 		$this->db_upgrade();
-		
 		// Register our post types and flush rewrite rules
 		badgeos_flush_rewrite_rules();
 	}
@@ -626,31 +444,28 @@ class BadgeOS {
 
 		// Set minimum role setting for menus
         $caps = array( 'manage_options', 'delete_others_posts', 'publish_posts' );
-		$minimum_role 				= badgeos_get_manager_capability();
-		$main_item_role = trim( $minimum_role );
-			
-		if( class_exists( 'BOS_Nomination_Submission' ) ) {
-			$minimum_submission_role 	= badgeos_get_submission_manager_capability();
-			$admin_role_num = array_search ( $minimum_role, $caps );
-			$submission_role_num = array_search ( $minimum_submission_role, $caps );
-			if( $submission_role_num > $admin_role_num ) {
-				$main_item_role = $minimum_submission_role;
-			}
-			$main_item_role = trim( $main_item_role );
-		}
-		
-		// Create main menu
+        $minimum_role 				= badgeos_get_manager_capability();
+        $minimum_submission_role 	= badgeos_get_submission_manager_capability();
+
+        $admin_role_num = array_search ( $minimum_role, $caps );
+        $submission_role_num = array_search ( $minimum_submission_role, $caps );
+        $main_item_role = $minimum_role;
+        if( $submission_role_num > $admin_role_num ) {
+            $main_item_role = $minimum_submission_role;
+        }
+        $main_item_role = trim( $main_item_role );
+
+
+        // Create main menu
         add_menu_page( 'BadgeOS', 'BadgeOS', $main_item_role, 'badgeos_badgeos', 'badgeos_settings', $this->directory_url . 'images/badgeos_icon.png', 110 );
-		add_submenu_page( 'badgeos_badgeos', __( 'Welcome', 'badgeos' ), __( 'Welcome', 'badgeos' ), $minimum_role, 'badgeos-welcome', 'badgeos_welcome_page', 0 );
-		
+
 		// Create submenu items
 		add_submenu_page( 'badgeos_badgeos', __( 'BadgeOS Settings', 'badgeos' ), __( 'Settings', 'badgeos' ), $minimum_role, 'badgeos_settings', 'badgeos_settings_page' );
-		add_submenu_page( 'badgeos_badgeos', __( 'Assets', 'badgeos' ), __( 'Assets', 'badgeos' ), $minimum_role, 'badgeos-assets', 'badgeos_assets_page' );
-		add_submenu_page( 'badgeos_badgeos', __( 'OB Integration', 'badgeos' ), __( 'OB Integration', 'badgeos' ), $minimum_role, 'badgeos-ob-integration', 'badgeos_ob_integration_page' );
+		add_submenu_page( 'badgeos_badgeos', __( 'Credly Integration', 'badgeos' ), __( 'Credly Integration', 'badgeos' ), $minimum_role, 'badgeos_sub_credly_integration', 'badgeos_credly_options_page' );
 		add_submenu_page( 'badgeos_badgeos', __( 'Add-Ons', 'badgeos' ), __( 'Add-Ons', 'badgeos' ), $minimum_role, 'badgeos_sub_add_ons', 'badgeos_add_ons_page' );
 		add_submenu_page( 'badgeos_badgeos', __( 'Help / Support', 'badgeos' ), __( 'Help / Support', 'badgeos' ), $minimum_role, 'badgeos_sub_help_support', 'badgeos_help_support_page' );
 
-        $settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
         if ( ! empty( $settings ) ) {
             $query = wp_count_posts( trim( $settings['ranks_main_post_type'] ) );
             $rank_types = get_posts( array(
@@ -661,7 +476,7 @@ class BadgeOS {
 
             $rank_menu = false;
             foreach( $rank_types as $rank_type ) {
-                $show_in_menu = badgeos_utilities::get_post_meta( $rank_type->ID, '_badgeos_show_in_menu', true );
+                $show_in_menu = get_post_meta( $rank_type->ID, '_badgeos_show_in_menu', true );
                 if( 'on' == $show_in_menu ) {
                     $rank_menu = true;
                 }
@@ -680,24 +495,19 @@ class BadgeOS {
 
         // Load scripts
         $screen = get_current_screen();
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('jquery-ui-datepicker'); 
-
-		if( $screen->id == 'badgeos_page_badgeos_tools' ) {
+        if( $screen->id == 'badgeos_page_badgeos_tools' ) {
             wp_enqueue_script( 'badgeos-admin-tools-js' );
             $min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
             wp_enqueue_script( 'badgeos-select2', $this->directory_url . "js/select2/select2$min.js", array( 'jquery' ), '', true );
-            wp_enqueue_style( 'badgeos-select2-css', $this->directory_url . "js/select2/select2$min.css" );
+            wp_enqueue_style( 'badgeos-select2-css', $this->directory_url . 'js/select2/select2.css' );
         }
 
-        wp_enqueue_style( 'badgeos-font-awesome' );
 		wp_enqueue_script( 'badgeos-admin-js' );
-
-        wp_enqueue_script( 'badgeos-ob-integrations' );
+		wp_enqueue_script( 'badgeos-credly' );
 
 		// Load styles
-        wp_enqueue_style( 'badgeos-jquery-ui-styles' );
-        wp_enqueue_style( 'badgeos-admin-styles' );
+        wp_enqueue_style( 'jquery-ui-styles' );
+		wp_enqueue_style( 'badgeos-admin-styles' );
 
 	}
 
@@ -705,13 +515,28 @@ class BadgeOS {
 	 * Frontend scripts and styles
 	 */
 	function frontend_scripts() {
-		
-		$data = array(
-			'ajax_url'        => esc_url( admin_url( 'admin-ajax.php', 'relative' ) )			
-		);
-		wp_localize_script( 'badgeos-achievements', 'BadgeosData', $data );
 
-        wp_enqueue_style( 'badgeos-font-awesome' );
+		$data = array(
+			'ajax_url'        => esc_url( admin_url( 'admin-ajax.php', 'relative' ) ),
+			'message'         => __( 'Would you like to display this badge on social networks and add it to your lifelong badge collection?', 'badgeos' ),
+			'confirm'         => __( 'Yes, send to Credly', 'badgeos' ),
+			'cancel'          => __( 'Cancel', 'badgeos' ),
+			'share'           => __( 'Share on Credly!', 'badgeos' ),
+			'localized_error' => __( 'Error:', 'badgeos' ),
+			'errormessage'    => __( 'Error: Timed out', 'badgeos' )
+		);
+		wp_localize_script( 'badgeos-achievements', 'BadgeosCredlyData', $data );
+
+        wp_enqueue_script(
+            'ck_editor_cdn',
+            ('https://cdn.ckeditor.com/4.5.3/standard/ckeditor.js'), array( 'jquery' ), 'v3', true
+        );
+
+        wp_enqueue_script(
+           'custom_script',
+            plugins_url( '/js/ckeditor.js' , __FILE__ ),
+            array( 'jquery' ),$this::$version,true
+        );
 	}
 
 	/**
@@ -721,6 +546,17 @@ class BadgeOS {
 		global $wp_rewrite;
 		flush_rewrite_rules();
 	}
+
+	/**
+	 * Initialize Credly API
+	 */
+	function credly_init() {
+
+		// Initalize the CredlyAPI class
+		$GLOBALS['badgeos_credly'] = new BadgeOS_Credly();
+
+	}
+
 }
 $GLOBALS['badgeos'] = new BadgeOS();
 
@@ -762,7 +598,7 @@ function badgeos_get_directory_url() {
 function badgeos_is_debug_mode() {
 
 	//get setting for debug mode
-	$badgeos_settings = badgeos_utilities::get_option( 'badgeos_settings' );
+	$badgeos_settings = get_option( 'badgeos_settings' );
 	$debug_mode = ( !empty( $badgeos_settings['debug_mode'] ) ) ? $badgeos_settings['debug_mode'] : 'disabled';
 
 	if ( $debug_mode == 'enabled' ) {
@@ -773,11 +609,6 @@ function badgeos_is_debug_mode() {
 
 }
 
-/**
- * Helper function for writing wordpress log entries
- *
- *@return none
- */
 if ( ! function_exists('badgeos_write_log')) {
     function badgeos_write_log ( $log )  {
         if ( is_array( $log ) || is_object( $log ) ) {
@@ -786,14 +617,4 @@ if ( ! function_exists('badgeos_write_log')) {
             error_log( $log );
         }
     }
-}
-
-/**
- * Get the post meta
- *
- * @return bool
- */
-function badgeos_get_meta_data( $type, $object_id, $meta_key = '', $single = false) {
-
-	return badgeos_utilities::get_post_meta( $object_id, $meta_key, $single );
 }

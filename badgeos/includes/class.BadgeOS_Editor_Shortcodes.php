@@ -33,17 +33,16 @@ class BadgeOS_Editor_Shortcodes {
         global $pagenow;
 	    $min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
         wp_enqueue_script( 'badgeos-select2', $this->directory_url . "js/select2/select2$min.js", array( 'jquery' ), '', true );
-        wp_enqueue_style( 'badgeos-select2-css', $this->directory_url . "js/select2/select2$min.css" );
+        wp_enqueue_style( 'badgeos-select2-css', $this->directory_url . 'js/select2/select2.css' );
 
-        wp_enqueue_style( 'badgeos-juqery-ui-css', $this->directory_url . "css/jquery-ui$min.css" );
-        wp_enqueue_style( 'badgeos-juqery-autocomplete-css', $this->directory_url . "css/autocomplete$min.css" );
-		
+        wp_enqueue_script( 'badgeos-autocomplete-multiselect', $this->directory_url . "js/jquery.autocomplete.multiselect.js", array( ), '', true );
+        wp_enqueue_style( 'badgeos-juqery-ui-css', $this->directory_url . 'css/jquery-ui.css' );
+        wp_enqueue_style( 'badgeos-juqery-autocomplete-css', $this->directory_url . 'css/autocomplete.css' );
+
         if ( $pagenow == 'post.php' || $pagenow == 'post-new.php' ) {
-            wp_enqueue_script( 'badgeos-jquery-ui-js' );
             wp_enqueue_script( 'badgeos-shortcodes-embed', $this->directory_url . "js/badgeos-shortcode-embed$min.js", array( 'jquery' ), '', true );
-		}
-		
-		wp_localize_script( 'badgeos-shortcodes-embed', 'badgeos_shortcode_embed_messages', $this->get_localized_text() );
+            wp_localize_script( 'badgeos-shortcodes-embed', 'badgeos_shortcode_embed_messages', $this->get_localized_text() );
+        }
     }
 
 	/**
@@ -55,7 +54,7 @@ class BadgeOS_Editor_Shortcodes {
 	 */
 	public function get_localized_text() {
 
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
         $achievement_types = get_posts( array(
             'post_type'      =>	$badgeos_settings['achievement_main_post_type'],
             'posts_per_page' =>	-1,

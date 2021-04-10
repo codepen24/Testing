@@ -4,12 +4,12 @@
  *
  * @package BadgeOS
  * @subpackage Tools
- * @author LearningTimes, LLC
+ * @author Wooninjas
  * @license http://www.gnu.org/licenses/agpl.txt GNU AGPL v3.0
- * @link https://badgeos.org
+ * @link https://wooninjas.com
  */
 
-$badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+$badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 $achievement_types = badgeos_get_achievement_types_slugs();
 $args = array(
     'role'         => '',

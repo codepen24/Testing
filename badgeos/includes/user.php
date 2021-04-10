@@ -30,12 +30,6 @@ function badgeos_get_user_achievements( $args = array() ) {
 		'end_date' => false, // A specific achievement type
 		'no_step' => false, // A specific achievement type
 		'since'            => 0,     // A specific timestamp to use in place of $limit_in_days
-		'pagination'	=> false,// if true the pagination will be applied
-		'limit'	=> 10,
-		'page'	=> 1,
-		'orderby' => 'entry_id',
-		'order' => 'ASC',
-		'total_only' => false
 	);
 	$args = wp_parse_args( $args, $defaults );
 
@@ -78,7 +72,7 @@ function badgeos_get_user_achievements( $args = array() ) {
 			}
 		}
 
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 		if( $args['no_step'] ) {
             $where .= " AND post_type != '".trim( $badgeos_settings['achievement_step_post_type'] )."'";
 		}
@@ -94,33 +88,13 @@ function badgeos_get_user_achievements( $args = array() ) {
 		if( $args['end_date'] ) {
 			$where .= " AND date_earned <= '". $args['end_date']. "'";
 		}
-		
-		$user_achievements = [];
-		if( $args['total_only'] == true ) {
-			$user_achievements = $wpdb->get_var( "SELECT count(entry_id) as entry_id FROM $table_name WHERE $where" );
-		} else {
-			
-			$paginate_str = '';
-			if( $args['pagination'] == true ||  $args['pagination'] == 'true' ) { 
-				$offset = (intval( $args['page'] )-1) * intval( $args['limit'] );
-				if( $offset < 0 ) {
-					$offset = 0;
-				}
-				$paginate_str = ' limit '.$offset.', '.$args['limit'];
-			}
-			
-			$order_str = '';
-			if( !empty( $args['orderby'] ) &&  !empty( $args['order'] ) ) {
-				$order_str = " ORDER BY ".$args['orderby']." ".$args['order'];
-			}
-			$user_achievements = $wpdb->get_results( "SELECT * FROM $table_name WHERE $where ".$order_str.' '.$paginate_str );
 
-		}
+		$user_achievements = $wpdb->get_results( "SELECT * FROM $table_name WHERE $where" );
 
 		return $user_achievements;
 	} else {
 		// Grab the user's current achievements
-		$achievements = ( $earned_items = badgeos_utilities::get_user_meta( absint( $args['user_id'] ), '_badgeos_achievements', true ) ) ? (array) $earned_items : array();
+		$achievements = ( $earned_items = get_user_meta( absint( $args['user_id'] ), '_badgeos_achievements', true ) ) ? (array) $earned_items : array();
 
 		// If we want all sites (or no specific site), return the full array
 		if ( empty( $achievements ) || empty( $args['site_id']) || 'all' == $args['site_id'] )
@@ -220,15 +194,14 @@ function badgeos_update_user_achievements( $args = array() ) {
 				'site_id'               => $args['site_id'],
 				'image'          		=> $new_achievement->image,
 				'rec_type'          	=> $rec_type,
-				'actual_date_earned'    => badgeos_default_datetime( 'mysql_achievements' ),
-                'date_earned'           => current_time( 'mysql' )
+				'date_earned'           => date("Y-m-d H:i:s")
 			));
 			
 			do_action( 'badgeos_achievements_new_added', $rec_type, $new_achievement->ID, absint( $args['user_id'] ), $wpdb->insert_id );
 			
 			return $wpdb->insert_id;
 		}	else {
-			badgeos_utilities::update_user_meta( absint( $args['user_id'] ), '_badgeos_achievements', $achievements );
+			update_user_meta( absint( $args['user_id'] ), '_badgeos_achievements', $achievements );
 			
 			do_action( 'badgeos_achievements_new_added', $rec_type, $new_achievement->ID, absint( $args['user_id'] ), 0 );
 
@@ -237,7 +210,7 @@ function badgeos_update_user_achievements( $args = array() ) {
 	} else {
 		
 		// Finally, update our user meta
-		$is_saved = badgeos_utilities::update_user_meta( absint( $args['user_id'] ), '_badgeos_achievements', $achievements);
+		$is_saved = update_user_meta( absint( $args['user_id'] ), '_badgeos_achievements', $achievements);
         do_action( 'badgeos_achievements_new_added', '', 0, absint( $args['user_id'] ), 0 );
 		return $is_saved;
 	}
@@ -250,7 +223,7 @@ function badgeos_update_user_achievements( $args = array() ) {
  */
 function badgeos_user_points_section( $user = null ) {
     $can_manage = current_user_can( badgeos_get_manager_capability() );
-	wp_enqueue_style( 'badgeos-admin-styles' );
+
 	/**
      * BadgeOS User Points
      */
@@ -263,103 +236,35 @@ function badgeos_user_points_section( $user = null ) {
         if ( is_array( $credit_types ) && ! empty( $credit_types ) ) {
             foreach ( $credit_types as $credit_type ) {
                 $earned_credits = badgeos_get_points_by_type( $credit_type->ID, $user->ID );
-				$post_type_plural = badgeos_points_type_display_title( $credit_type->ID );
-				$badge_image = badgeos_get_point_image( $credit_type->ID, 50, 50 );
-				$badge_image = apply_filters( 'badgeos_profile_points_image', $badge_image, 'backend-profile' , $credit_type  );
                 ?>
-                <div class="badgeos-credits"> 
-					<table>
-						<tr>
-							<td valign="top" width="15%"><?php echo $badge_image; ?></td>
-							<td valign="top" width="85%">
-								<h3><?php echo $post_type_plural; ?></h3>
-								<?php if( $can_manage ) {
-									?>
-										<span class="badgeos-credit-edit"><?php echo _e( 'Edit', 'badgeos' ); ?></span>
-									<?php
-								}
-								?>
+                <div class="badgeos-credits">
+                    <h3><?php echo $credit_type->post_title; ?></h3>
+                    <?php if( $can_manage ) {
+                        ?>
+                        <span class="badgeos-credit-edit"><?php echo _e( 'Edit', 'badgeos' ); ?></span>
+                        <?php
+                    } ?>
 
-								<div class="badgeos-earned-credit"><?php echo __( 'Total: ' ) .'<span id="badgeos-'.$credit_type->ID.'-credit-profile-label">'.$earned_credits; ?></span></div>
+                    <div class="badgeos-earned-credit"><?php echo __( 'Earned Credit: ' ) . (int) $earned_credits; ?></div>
 
-								<?php if( $can_manage ) {
-									?>
-										<div class="badgeos-edit-credit-wrapper" style="display:none">
-											<?php echo $post_type_plural; ?>
-											<input type="number" class="badgeos-edit-credit" id="badgeos-<?php echo $credit_type->ID; ?>-credit" name="badgeos-<?php echo $credit_type->ID; ?>-credit" value="<?php echo (int) $earned_credits; ?>" />
-											<input type="button" data-user_id="<?php echo $user->ID?>" data-field_id="badgeos-<?php echo $credit_type->ID; ?>-credit" data-admin_ajax="<?php echo admin_url( 'admin-ajax.php' ); ?>" data-points_id="<?php echo $credit_type->ID; ?>" class="badgeos-profile-points-update-button button button-primary" value="<?php echo _e( 'Update', 'badgeos' ); ?>" />
-											<input type="button" data-field_id="badgeos-<?php echo $credit_type->ID; ?>-credit" class="badgeos-profile-points-cancel-button button button-primary" value="<?php echo _e( 'Cancel', 'badgeos' ); ?>" />
-										</div>
-									<?php
-								} ?>
-							</td>
-						</tr>
-					</table>
-            	</div>
+                    <?php if( $can_manage ) {
+                        ?>
+                        <div class="badgeos-edit-credit-wrapper" style="display:none">
+                            <?php echo __( 'Earned Credit: ' ); ?>
+                            <input type="number" class="badgeos-edit-credit" name="badgeos-<?php echo $credit_type->ID; ?>-credit" value="<?php echo (int) $earned_credits; ?>" />
+                        </div>
+                        <?php
+                    } ?>
+                </div>
                 <?php
             }
         }
         ?>
-	</div>
-	<div style="clear:both">&nbsp;</div>
+    </div>
     <?php
 }
 add_action( 'show_user_profile', 'badgeos_user_points_section' );
 add_action( 'edit_user_profile', 'badgeos_user_points_section' );
-
-/**
- * Save profile points
- *
- * @return none
- */
-function badgeos_user_profile_update_points_callback() {
-
-    $points_id = sanitize_text_field($_POST['points_id'] );
-    $points = sanitize_text_field($_POST['points'] );
-    $user_id = sanitize_text_field($_POST['user_id'] );
-
-    $array_output = [];
-    $array_output[ 'new_points' ] 	= $points;
-    $array_output[ 'points_id' ] 	= $points_id;
-    $array_output[ 'user_id' ] 		= $user_id;
-
-    if ( ! current_user_can( 'edit_user', get_current_user_id() ) ) {
-        $array_output[ 'message' ] 		= __( 'Permission denied!', 'badgeos' );
-        wp_send_json_error( $array_output );
-    }
-
-    $old_points = badgeos_get_points_by_type( $points_id, $user_id );
-    $array_output[ 'old_points' ] 	= $old_points;
-
-    $updated_credit = $points;
-    if( (int) $points != $old_points ) {
-        if( (int) $points >= 0 ) {
-            if( (int) $points == 0 ) {
-                badgeos_revoke_credit( $points_id, $user_id, 'Deduct', $old_points, 'user_profile_credit_update', $user_id, '', '' );
-                $array_output[ 'action' ] = 'Deduct';
-            } elseif( (int) $points > $old_points ) {
-                $add_credit_amount = (int) $points - $old_points;
-                badgeos_award_credit( $points_id, $user_id, 'Award', $add_credit_amount, 'user_profile_credit_update', $user_id, '', '' );
-                $array_output[ 'action' ] = 'Award';
-            } else {
-                $deduct_credit_amount = $old_points - (int) $points;
-                badgeos_revoke_credit( $points_id, $user_id, 'Deduct', $deduct_credit_amount, 'user_profile_credit_update', $user_id, '', '' );
-                $array_output[ 'action' ] = 'Deduct';
-            }
-        } else {
-            $array_output[ 'action' ] = 'None';
-            $array_output[ 'message' ] = __( 'Updated points should be greater than zero!', 'badgeos' );
-            wp_send_json_error( $array_output );
-        }
-    } else {
-        $array_output[ 'action' ] = 'None';
-        $array_output[ 'message' ] = __( 'You can not update the same value!', 'badgeos' );
-        wp_send_json_error( $array_output );
-    }
-
-    wp_send_json_success( $array_output );
-}
-add_action( 'wp_ajax_badgeos_user_profile_update_points', 'badgeos_user_profile_update_points_callback' );
 
 /**
  * Display achievements for a user on their profile screen
@@ -372,7 +277,7 @@ function badgeos_user_profile_data( $user = null ) {
 
 	$achievement_ids = array();
 
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
     echo '<h2>' . __( 'BadgeOS Email Notifications', 'badgeos' ) . '</h2>';
     echo '<table class="form-table">';
     echo '<tr>';
@@ -385,133 +290,129 @@ function badgeos_user_profile_data( $user = null ) {
 
     echo '<input id="badgeos_user_id" name="badgeos_user_id" value="'.$user->ID.'" type="hidden" />';
 
-    $achievements = badgeos_get_user_achievements( array( 'user_id' => absint( $user->ID ) ) );
+	//verify uesr meets minimum role to view earned badges
+	//if ( current_user_can( badgeos_get_manager_capability() ) ) 
+	{
 
-    // List all of a user's earned achievements
-    echo '<h2>' . __( 'Earned Achievements', 'badgeos' ) . '</h2>';
+	    $achievements = badgeos_get_user_achievements( array( 'user_id' => absint( $user->ID ) ) );
 
-    echo '<table class="form-table">';
+		// List all of a user's earned achievements
+		if ( $achievements ) {
+			echo '<h2>' . __( 'Earned Achievements', 'badgeos' ) . '</h2>';
 
-    echo '<tr><td colspan="2">';
+			echo '<table class="form-table">';
 
-    echo '<table class="widefat badgeos-table">';
-    echo '<thead><tr>';
-    if ( current_user_can( badgeos_get_manager_capability() ) ) {
-        echo '<th width="5%"><input type="checkbox" id="badgeos_ach_check_all" name="badgeos_ach_check_all" /></th>';
-    }
-    echo '<th>'. __( 'Image', 'badgeos' ) .'</th>';
-    echo '<th>'. __( 'Name', 'badgeos' ) .'</th>';
-    echo '<th>'. __( 'Points', 'badgeos' ) .'</th>';
-    do_action( 'badgeos_profile_achivement_add_column_heading' );
-    echo '</tr></thead>';
+			echo '<tr><td colspan="2">';
 
-    $ach_index = 0;
-    $achievement_exists = false;
+			echo '<table class="widefat badgeos-table">';
+			echo '<thead><tr>';
+			if ( current_user_can( badgeos_get_manager_capability() ) ) {
+				echo '<th width="5%"><input type="checkbox" id="badgeos_ach_check_all" name="badgeos_ach_check_all" /></th>';
+			}
+			echo '<th>'. __( 'Image', 'badgeos' ) .'</th>';
+			echo '<th>'. __( 'Name', 'badgeos' ) .'</th>';
+			echo '<th>'. __( 'Points', 'badgeos' ) .'</th>';
+			do_action( 'badgeos_profile_achivement_add_column_heading' );
+			echo '</tr></thead>';
 
-    foreach ( $achievements as $achievement ) {
+            $ach_index = 0;
+            $achievement_exists = false;
 
-        if( $achievement->post_type != trim( $badgeos_settings['achievement_step_post_type'] ) ) {
-            $achievement_exists = true;
+			foreach ( $achievements as $achievement ) {
 
-            echo '<tr>';
-            if ( current_user_can( badgeos_get_manager_capability() ) ) {
-                $ent_id = 0;
-                if( isset( $achievement->entry_id ) && intval( $achievement->entry_id ) ) {
-                    $ent_id = $achievement->entry_id;
+                if( $achievement->post_type != trim( $badgeos_settings['achievement_step_post_type'] ) ) {
+                    $achievement_exists = true;
+                    
+					echo '<tr>';
+					if ( current_user_can( badgeos_get_manager_capability() ) ) {
+						$ent_id = 0;
+						if( isset( $achievement->entry_id ) && intval( $achievement->entry_id ) ) {
+							$ent_id = $achievement->entry_id;
+						}
+						echo '<td width="5%" style="text-align:center;"><input type="checkbox" id="badgeos_ach_check_indi_'.$achievement->ID.'" value="'.$achievement->ID.'_'.$ach_index.'_'.$ent_id.'" name="badgeos_ach_check_indis[]" /></td>';
+					}
+					$badge_image = badgeos_get_achievement_post_thumbnail( $achievement->ID, array( 50, 50 ) );
+					$badge_image = apply_filters( 'badgeos_profile_achivement_image', $badge_image, $achievement  );
+					
+                    echo '<td width="20%">'.$badge_image.'</td>';
+                    echo '<td width="55%">';
+                    $achievement_title = get_the_title( $achievement->ID );
+                    if( empty( $achievement_title ) ) {
+						if ( current_user_can( badgeos_get_manager_capability() ) ) {
+							echo '<a class="post-edit-link" href="'.get_permalink($achievement->ID).'">'. esc_html( $achievement->achievement_title ) .'</a>';
+						} else {
+							echo '<a class="post-edit-link" href="'.get_permalink($achievement->ID).'">'. esc_html( $achievement->achievement_title ) .'</a>';
+						}
+                    } else {
+						if ( current_user_can( badgeos_get_manager_capability() ) ) {
+							$achievement_title = edit_post_link( $achievement_title, '', '', $achievement->ID );
+						} else {
+							echo '<a class="post-edit-link" href="'.get_permalink($achievement->ID).'">'. esc_html( $achievement->achievement_title ) .'</a>';
+						}
+                    }
+                    echo '</td>';
+					$point_type = '';
+					
+					if( property_exists ( $achievement, 'point_type' ) ) {
+						$post_id = intval( $achievement->point_type );
+						$point_type = ' '.get_the_title( $post_id );
+					} else if( property_exists ( $achievement, 'points_type' ) ) {
+						$post_id = intval( $achievement->points_type );
+						$point_type = ' '.get_the_title( $post_id );
+					}
+                    echo '<td width="20%">'.intval( $achievement->points ).$point_type.'</td>';
+					
+					do_action( 'badgeos_profile_achivement_add_column_data', $achievement );
+                    echo '</tr>';
+                    $ach_index += 1;
+                    $achievement_ids[] = $achievement->ID;
                 }
-                echo '<td width="5%" style="text-align:center;"><input type="checkbox" id="badgeos_ach_check_indi_'.$achievement->ID.'" value="'.$achievement->ID.'_'.$ach_index.'_'.$ent_id.'" name="badgeos_ach_check_indis[]" /></td>';
             }
-            $badge_image = badgeos_get_achievement_post_thumbnail( $achievement->ID, array( 50, 50 ) );
-            $badge_image = apply_filters( 'badgeos_profile_achivement_image', $badge_image, $achievement, array( 50, 50 )  );
 
-            echo '<td width="20%">'.$badge_image.'</td>';
-            echo '<td width="55%">';
-            $achievement_title = get_the_title( $achievement->ID );
-            if( empty( $achievement_title ) ) {
-                if ( current_user_can( badgeos_get_manager_capability() ) ) {
-                    echo '<a class="post-edit-link" href="'.get_permalink($achievement->ID).'">'. esc_html( $achievement->achievement_title ) .'</a>';
-                } else {
-                    echo '<a class="post-edit-link" href="'.get_permalink($achievement->ID).'">'. esc_html( $achievement->achievement_title ) .'</a>';
-                }
+            if( $achievement_exists ) {
+				if ( current_user_can( badgeos_get_manager_capability() ) ) {
+					echo '<tr>';
+					echo '<td colspan="5" class="bulk-delete-detail">'.__( 'Select achievement(s) before clicking on revoke selected button', 'badgeos' ).'</td>';
+					echo '</tr>';
+					echo '<tr>';
+					echo '<td colspan="5" class="bulk-delete-detail"><button type="button" id="badgeos_btn_revoke_bulk_achievements" class="button button-primary">'.__( 'Revoke Selected', 'badgeos' ).'</button><img id="revoke-badges-loader" src="'. admin_url( '/images/spinner-2x.gif' ) .'" /></td>';
+					echo '</tr>';
+				}
             } else {
-                if ( current_user_can( badgeos_get_manager_capability() ) ) {
-                    $achievement_title = edit_post_link( $achievement_title, '', '', $achievement->ID );
-                } else {
-                    echo '<a class="post-edit-link" href="'.get_permalink($achievement->ID).'">'. esc_html( $achievement->achievement_title ) .'</a>';
-                }
+			    echo '<tr>';
+			    echo '<td>'. __( 'No Achievement Found.', 'badgeos' ) .'</td>';
+			    echo '</tr>';
             }
-            echo '</td>';
-            $point_type = '';
 
-            $post_id = 0;
-            if( property_exists ( $achievement, 'point_type' ) ) {
-                $post_id = intval( $achievement->point_type );
-            } else if( property_exists ( $achievement, 'points_type' ) ) {
-                $post_id = intval( $achievement->points_type );
-			}
+			echo '</table>';
 			
-			$point_type = badgeos_points_type_display_title( $post_id ); 
-            $default_point_type 	= ( ! empty ( $badgeos_settings['default_point_type'] ) ) ? $badgeos_settings['default_point_type'] : '';
-            if( intval( $post_id ) == 0 ) {
-				$point_type = badgeos_points_type_display_title( $default_point_type );
-			}
-			
-			if( empty( $point_type ) ) {
-				$point_type = __( 'Points', 'badgeos' );
-			}
+			echo '</td></tr>';
+			echo '</table>';
+		}
+		
+		// If debug mode is on, output our achievements array
+		if ( badgeos_is_debug_mode() ) {
 
-            echo '<td width="20%">'.intval( $achievement->points ).' '.$point_type.'</td>';
+			echo __( 'DEBUG MODE ENABLED', 'badgeos' ) . '<br />';
+			echo __( 'Metadata value for:', 'badgeos' ) . ' _badgeos_achievements<br />';
 
-            do_action( 'badgeos_profile_achivement_add_column_data', $achievement );
-            echo '</tr>';
-            $ach_index += 1;
-            $achievement_ids[] = $achievement->ID;
-        }
-    }
+			var_dump ( $achievements );
 
-    if( $achievement_exists ) {
-        if ( current_user_can( badgeos_get_manager_capability() ) ) {
-            echo '<tr>';
-            echo '<td colspan="5" class="bulk-delete-detail">'.__( 'Select achievement(s) before clicking on revoke selected button', 'badgeos' ).'</td>';
-            echo '</tr>';
-            echo '<tr>';
-            echo '<td colspan="5" class="bulk-delete-detail"><button type="button" id="badgeos_btn_revoke_bulk_achievements" class="button button-primary">'.__( 'Revoke Selected', 'badgeos' ).'</button><img id="revoke-badges-loader" src="'. admin_url( '/images/spinner-2x.gif' ) .'" /></td>';
-            echo '</tr>';
-        }
-    } else {
-        echo '<tr>';
-        echo '<td>'. __( 'No Achievement Found.', 'badgeos' ) .'</td>';
-        echo '</tr>';
-    }
+		}
 
-    echo '</table>';
+		echo '<br/>';
 
-    echo '</td></tr>';
-    echo '</table>';
+		// Output markup for awarding achievement for user
+		badgeos_profile_award_achievement( $user, $achievement_ids );
 
-    // If debug mode is on, output our achievements array
-    if ( badgeos_is_debug_mode() ) {
-
-        echo __( 'DEBUG MODE ENABLED', 'badgeos' ) . '<br />';
-        echo __( 'Metadata value for:', 'badgeos' ) . ' _badgeos_achievements<br />';
-
-        var_dump ( $achievements );
-
-    }
-
-    echo '<br/>';
-
-    // Output markup for awarding achievement for user
-    if ( current_user_can( badgeos_get_manager_capability() ) ) {
-        badgeos_profile_award_achievement( $user, $achievement_ids );
-    }
+	}
 
 }
 add_action( 'show_user_profile', 'badgeos_user_profile_data' );
 add_action( 'edit_user_profile', 'badgeos_user_profile_data' );
 
 /**
- * revokes achievements
+ * revokes achivements
  *
  * @since  1.0.0
  * @param  int  $user_id      User ID being saved
@@ -521,7 +422,7 @@ function delete_badgeos_bulk_achievements_records( ){
 
 	global $wpdb;
 
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
     $user_recs = $_POST['achievements'];
     $user_id = $_POST['user_id'];
     if( is_array( $user_recs ) && count( $user_recs ) > 0 ) {
@@ -616,16 +517,41 @@ function badgeos_save_user_profile_fields( $user_id = 0 ) {
 	}
 
 	/**
+     * Update User Points
+     */
+    $credit_types = badgeos_get_point_types();
+    if ( is_array( $credit_types ) && ! empty( $credit_types ) ) {
+        foreach ( $credit_types as $credit_type ) {
+            $earned_credits = badgeos_get_points_by_type( $credit_type->ID, $user_id );
+
+            $updated_credit = ( isset( $_POST['badgeos-' . $credit_type->ID . '-credit'] ) ? $_POST['badgeos-' . $credit_type->ID . '-credit'] : '' );
+            if( (int) $updated_credit != $earned_credits ) {
+                if( (int) $updated_credit >= 0 ) {
+                    if( (int) $updated_credit == 0 ) {
+                        badgeos_revoke_credit( $credit_type->ID, $user_id, 'Deduct', $earned_credits, 'user_profile_credit_update', get_current_user_id(), '', '' );
+                    } elseif( (int) $updated_credit > $earned_credits ) {
+                        $add_credit_amount = (int) $updated_credit - $earned_credits;
+                        badgeos_award_credit( $credit_type->ID, $user_id, 'Award', $add_credit_amount, 'user_profile_credit_update', get_current_user_id(), '', '' );
+                    } else {
+                        $deduct_credit_amount = $earned_credits - (int) $updated_credit;
+                        badgeos_revoke_credit( $credit_type->ID, $user_id, 'Deduct', $deduct_credit_amount, 'user_profile_credit_update', get_current_user_id(), '', '' );
+                    }
+                }
+            }
+        }
+	}
+	
+	/**
      * Update Rank Type Filter Field
      */
     $rank_type_filter = ( isset( $_POST['badgeos_ranks_filter'] ) ? $_POST['badgeos_ranks_filter'] : 'all' );
-    badgeos_utilities::update_user_meta( $user_id, '_badgeos_ranks_filter', $rank_type_filter );
+    update_user_meta( $user_id, '_badgeos_ranks_filter', $rank_type_filter );
 
     /**
      * Update Achievement Type Filter Field
      */
     $rank_type_filter = ( isset( $_POST['badgeos_achievement_filter'] ) ? $_POST['badgeos_achievement_filter'] : 'all' );
-	badgeos_utilities::update_user_meta( $user_id, '_badgeos_achievement_filter', $rank_type_filter );
+	update_user_meta( $user_id, '_badgeos_achievement_filter', $rank_type_filter );
 
 }
 add_action( 'personal_options_update', 'badgeos_save_user_profile_fields' );
@@ -640,7 +566,7 @@ function badgeos_profile_user_ranks( $user = null ) {
 
 	$rank_types = badgeos_get_rank_types_slugs_detailed();
 	$can_manage = current_user_can( badgeos_get_manager_capability() );
-	$selected = badgeos_utilities::get_user_meta( $user->ID, '_badgeos_ranks_filter', true );
+	$selected = get_user_meta( $user->ID, '_badgeos_ranks_filter', true );
 	if( empty( $selected ) ) {
         $selected = 'all';
     }
@@ -673,7 +599,6 @@ function badgeos_profile_user_ranks( $user = null ) {
 				<th><?php _e( 'Image', 'badgeos' ); ?></th>
 				<th><?php _e( 'Name', 'badgeos' ); ?></th>
 				<th><?php _e( 'Rank Type', 'badgeos' ); ?></th>
-				<th><?php _e( 'Points', 'badgeos' ); ?></th>
 				<th align="center" style="text-align:center !important;"><?php _e( 'Last Awarded', 'badgeos' ); ?></th>
 				<?php
 				if( $can_manage ) {
@@ -682,7 +607,6 @@ function badgeos_profile_user_ranks( $user = null ) {
 					<?php
 				}
 				?>
-				<?php do_action( 'badgeos_profile_rank_add_column_heading' ); ?>
 			</tr>
 		</thead>
 		<tbody>
@@ -690,7 +614,7 @@ function badgeos_profile_user_ranks( $user = null ) {
 			if( empty( $rank_types ) && $can_manage ) {
 				?>
 				<tr>
-					<td colspan="6">
+					<td colspan="5">
 						<span class="description">
 							<?php echo sprintf( __( 'No rank types configured, visit %s to configure some rank types.', 'badgeos' ), '<a href="' . admin_url( 'edit.php?post_type=rank-type' ) . '">' . __( 'this page', 'badgeos' ) . '</a>' ); ?>
 						</span>
@@ -705,28 +629,16 @@ function badgeos_profile_user_ranks( $user = null ) {
 
 				if( $user_ranks ) {
 					foreach( $user_ranks as $rank ) {
-						
-						$point_type = badgeos_points_type_display_title( $rank->credit_id ); 
-						$default_point_type 	= ( ! empty ( $badgeos_settings['default_point_type'] ) ) ? $badgeos_settings['default_point_type'] : '';
-						if( intval( $rank->rank_id ) == 0 ) {
-							$point_type = badgeos_points_type_display_title( $default_point_type );
-						}
-						
-						if( empty( $point_type ) ) {
-							$point_type = __( 'Points', 'badgeos' );
-						}
-
 						?>
 						<tr class="<?php echo $rank->rank_type; ?> ">
 							<?php
-							$ranks_image = badgeos_get_rank_image( $rank->rank_id, 50, 50 );
+							$ranks_image = badgeos_get_rank_image( $rank->rank_id );
 							?>
 							<td><?php echo $ranks_image; ?></td>
 							<td><?php echo $rank->rank_title; ?></td>
 							<td><?php echo $rank->rank_type; ?></td>
-							<td><?php echo $rank->credit_amount.' '.$point_type; ?></td>
 							<?php
-							$last_awarded = badgeos_utilities::get_user_meta( $user->ID, '_badgeos_'.$rank->rank_type.'_rank', true );
+							$last_awarded = get_user_meta( $user->ID, '_badgeos_'.$rank->rank_type.'_rank', true );
 							?>
 							<td class="last-awarded" align="center">
 								<?php
@@ -740,7 +652,7 @@ function badgeos_profile_user_ranks( $user = null ) {
 								?>
 								<td>
 									<?php
-									$rank_post = badgeos_utilities::badgeos_get_post( $rank->rank_id );
+									$rank_post = get_post( $rank->rank_id );
 									if( $rank->priority > 0 ) {
 										$prev_rank_id = ( !is_null( badgeos_get_prev_rank_id( absint( $rank->rank_id ) ) ) ? badgeos_get_prev_rank_id( absint( $rank->rank_id ) ) : '' );
 										?>
@@ -766,12 +678,11 @@ function badgeos_profile_user_ranks( $user = null ) {
 								<?php
 							}
 							?>
-							<?php do_action( 'badgeos_profile_rank_add_column_data', $rank ); ?>
 						</tr>
 						<?php
 					}
 				} else {
-					$colpan = ( $can_manage ) ? 7 : 6;
+					$colpan = ( $can_manage ) ? 5 : 4;
 					?>
 					<tr class="no-awarded-rank">
 						<td colspan="<?php echo $colpan; ?>">
@@ -790,12 +701,14 @@ function badgeos_profile_user_ranks( $user = null ) {
 			<th><?php _e( 'Image', 'badgeos' ); ?></th>
 			<th><?php _e( 'Name', 'badgeos' ); ?></th>
 			<th><?php _e( 'Rank Type', 'badgeos' ); ?></th>
-			<th><?php _e( 'Points', 'badgeos' ); ?></th>
 			<th align="center" style="text-align:center !important;"><?php _e( 'Last Awarded', 'badgeos' ); ?></th>
-			<?php if( $can_manage ) { ?>
+			<?php
+			if( $can_manage ) {
+				?>
 				<th><?php _e( 'Action', 'badgeos' ); ?></th>
-			<?php } ?>
-			<?php do_action( 'badgeos_profile_rank_add_column_heading' ); ?>
+				<?php
+			}
+			?>
 		</tr>
 		</tfoot>
 	</table>
@@ -837,7 +750,7 @@ function badgeos_profile_award_achievement( $user = null, $achievement_ids = arr
 
 	// Grab our achivement types
 	$achievement_types = badgeos_get_achievement_types();
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 	?>
 
 	<h2><?php _e( 'Award an Achievement', 'badgeos' ); ?></h2>
@@ -995,11 +908,21 @@ function badgeos_get_network_achievement_types_for_user( $user_id ) {
 	$sites = badgeos_get_network_site_ids();
 	foreach( $sites as $site_blog_id ) {
 
+		// If we're polling a different blog, switch to it
+		if ( $blog_id != $site_blog_id ) {
+			switch_to_blog( $site_blog_id );
+		}
+
 		// Merge earned achievements to our achievement type array
 		$achievement_types = badgeos_get_user_earned_achievement_types( $user_id );
 		if ( is_array($achievement_types) ) {
 			$all_achievement_types = array_merge($achievement_types,$all_achievement_types);
 		}
+	}
+
+	if ( is_multisite() ) {
+		// Restore the original blog so the sky doesn't fall
+		switch_to_blog( $cached_id );
 	}
 
 	// Pare down achievement type list so we return no duplicates
@@ -1022,7 +945,7 @@ function badgeos_can_notify_user( $user_id = 0 ) {
 		$user_id = get_current_user_id();
 	}
 
-    return badgeos_utilities::get_user_meta( $user_id, '_badgeos_can_notify_user', true )? true:false;
+    return get_user_meta( $user_id, '_badgeos_can_notify_user', true )? true:false;
 }
 
 /**
@@ -1035,7 +958,7 @@ function badgeos_can_notify_user( $user_id = 0 ) {
  */
 function badgeos_update_can_notify_user_field( $user_id ){
 
-    badgeos_utilities::update_user_meta( $user_id, '_badgeos_can_notify_user', 1 );
+    update_user_meta( $user_id, '_badgeos_can_notify_user', 1 );
 }
 add_action( 'user_register', 'badgeos_update_can_notify_user_field', 10, 1 );
 
@@ -1053,52 +976,7 @@ function badgeos_save_email_notify_field( $user_id ) {
         return false;
     }
 
-	badgeos_utilities::update_user_meta( $user_id, '_badgeos_can_notify_user', sanitize_text_field($_POST['_badgeos_can_notify_user'] ) );
-	badgeos_utilities::update_user_meta( $user_id, '_badgeos_date_of_birth', sanitize_text_field($_POST['badgeos_date_of_birth'] ) );
+    update_user_meta( $user_id, '_badgeos_can_notify_user', sanitize_text_field($_POST['_badgeos_can_notify_user'] ) );
 }
 add_action( 'personal_options_update', 'badgeos_save_email_notify_field' );
 add_action( 'edit_user_profile_update', 'badgeos_save_email_notify_field' );
-add_action( 'user_register', 'badgeos_register_save_email_notify_field', 10, 1 );
-
-function badgeos_register_save_email_notify_field( $user_id ) {
-	if (isset($_POST['badgeos_date_of_birth']) && !empty( $_POST['badgeos_date_of_birth'] ) ) {
-		badgeos_utilities::update_user_meta( $user_id, '_badgeos_date_of_birth', sanitize_text_field($_POST['badgeos_date_of_birth'] ) );
-	}
-}
-
-/**
- * Show custom user profile fields
- * 
- * @param  object $profileuser A WP_User object
- * @return void
- */
-function badgeos_dob_profile_fields( $profileuser ) {
-	
-	if(is_string( $profileuser ) === true){
-        $profileuser = new stdClass();//create a new
-        $profileuser->ID = -9999;
-    }
-	
-	$badgeos_settings = get_option( 'badgeos_settings' );
-    $date_of_birth_from 	= ( ! empty ( $badgeos_settings['date_of_birth_from'] ) ) ? $badgeos_settings['date_of_birth_from'] : 'profile';
-    
-	if( ! class_exists( 'BuddyPress' ) || $date_of_birth_from == 'profile' ) {
-		?>
-			<table class="form-table">
-				<tr>
-					<th>
-						<label for="user_location"><?php _e( 'Date Of Birth', 'badgeos' ); ?></label>
-					</th>
-					<td>
-						<input type="text" readonly="readonly" name="badgeos_date_of_birth" id="badgeos_date_of_birth" value="<?php echo esc_attr( get_the_author_meta( '_badgeos_date_of_birth', $profileuser->ID ) ); ?>" class="regular-text" />
-					</td>
-				</tr>
-			</table>
-		<?php
-	}
-
-}
-add_action( 'show_user_profile', 'badgeos_dob_profile_fields', 0, 1 );
-add_action( 'edit_user_profile', 'badgeos_dob_profile_fields', 0, 1 );
-add_action( 'user_new_form', 'badgeos_dob_profile_fields' );
-add_action( 'network_user_new_form', 'badgeos_dob_profile_fields' );

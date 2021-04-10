@@ -23,7 +23,7 @@ function badgeos_is_achievement( $post = null ) {
 	$return = true;
 
 	// If post type is NOT a registered achievement type, it cannot be an achievement
-	if ( ! in_array( badgeos_utilities::get_post_type( $post ), badgeos_get_achievement_types_slugs() ) ) {
+	if ( ! in_array( get_post_type( $post ), badgeos_get_achievement_types_slugs() ) ) {
 		$return = false;
 	}
 
@@ -292,7 +292,7 @@ function badgeos_is_achievement_sequential( $achievement_id = 0 ) {
 	}
 
 	// If our achievement requires sequential steps, return true, otherwise false
-	if ( badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_sequential', true ) )
+	if ( get_post_meta( $achievement_id, '_badgeos_sequential', true ) )
 		return true;
 	else
 		return false;
@@ -308,7 +308,7 @@ function badgeos_is_achievement_sequential( $achievement_id = 0 ) {
  */
 function badgeos_achievement_user_exceeded_max_earnings( $user_id = 0, $achievement_id = 0 ) {
 
-	$max_earnings = badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_maximum_earnings', true);
+	$max_earnings = get_post_meta( $achievement_id, '_badgeos_maximum_earnings', true);
 
 	//Infinite maximum earnings check
     if($max_earnings == '-1'){
@@ -339,7 +339,7 @@ function badgeos_achievement_user_exceeded_max_earnings( $user_id = 0, $achievem
 function badgeos_build_achievement_object( $achievement_id = 0, $context = 'earned', $trigger='', $image='', $rec_type='normal' ) {
 
 	// Grab the new achievement's $post data, and bail if it doesn't exist
-	$achievement = badgeos_utilities::badgeos_get_post( $achievement_id ); 
+	$achievement = get_post( $achievement_id );
 	if ( is_null( $achievement ) )
 		return false;
 
@@ -352,7 +352,7 @@ function badgeos_build_achievement_object( $achievement_id = 0, $context = 'earn
 	$achievement_object->image 			= $image;
 	$achievement_object->rec_type 		= $rec_type;
 
-	$points = badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_points', true );
+	$points = get_post_meta( $achievement_id, '_badgeos_points', true );
 	if( isset( $points ) &&  is_array( $points ) && count( $points ) > 0 ) {
 		$point_value 	= $points['_badgeos_points'];
 		$points_type 	= $points['_badgeos_points_type'];
@@ -386,7 +386,7 @@ function badgeos_build_achievement_object( $achievement_id = 0, $context = 'earn
  *
  * @since  1.0.0
  * @param  string $achievement_type Limit the array to a specific type of achievement
- * @return array                    An array of hidden achievement post IDs
+ * @return array                    An array of hidden achivement post IDs
  */
 function badgeos_get_hidden_achievement_ids( $achievement_type = '' ) {
 
@@ -419,7 +419,7 @@ function badgeos_get_hidden_achievement_ids( $achievement_type = '' ) {
  *
  * @since  1.0.0
  * @param  integer $achievement_id Limit the array to a specific id of achievement
- * @return array  An array of hidden achievement post IDs
+ * @return array  An array of hidden achivement post IDs
  */
 
 function badgeos_get_hidden_achievement_by_id( $achievement_id ) {
@@ -427,6 +427,7 @@ function badgeos_get_hidden_achievement_by_id( $achievement_id ) {
 	// Grab our hidden achievements
 	global $wpdb;
 
+	//Get hidden submission posts.
 	$hidden_achievements = $wpdb->get_results( $wpdb->prepare(
 		"SELECT * FROM {$wpdb->posts} AS p
                                  JOIN {$wpdb->postmeta} AS pm
@@ -447,7 +448,7 @@ function badgeos_get_hidden_achievement_by_id( $achievement_id ) {
  * @since  1.0.0
  * @param  integer $user_id          The given user's ID
  * @param  string  $achievement_type Limit the array to a specific type of achievement
- * @return array                     Our user's array of earned achievement post IDs
+ * @return array                     Our user's array of earned achivement post IDs
  */
 function badgeos_get_user_earned_achievement_ids( $user_id = 0, $achievement_type = '' ) {
 
@@ -529,19 +530,19 @@ function badgeos_get_dependent_achievements( $achievement_id = 0, $user_id = 0 )
 		       AND meta.meta_key = '_badgeos_achievement_type'
 		       AND meta.meta_value = %s
 		",
-		badgeos_utilities::get_post_type( $achievement_id )
+		get_post_type( $achievement_id )
 	) );
 
     $new_type_achivements = array();
     foreach( $type_achievements as $ach ) {
         $post_id = $ach->ID;
-        $trigger = badgeos_utilities::get_post_meta( $post_id, '_badgeos_trigger_type', true );
+        $trigger = get_post_meta( $post_id, '_badgeos_trigger_type', true );
         if( $trigger != 'specific-achievement' ) {
             $new_type_achivements[] = $ach;
         } else {
 
-            $achievement_post 	= badgeos_utilities::get_post_meta( $post_id, '_badgeos_achievement_post', true );
-            $badgeos_count 		= badgeos_utilities::get_post_meta( $post_id, '_badgeos_count', true );
+            $achievement_post 	= get_post_meta( $post_id, '_badgeos_achievement_post', true );
+            $badgeos_count 		= get_post_meta( $post_id, '_badgeos_count', true );
 
             $dest_achievements = badgeos_get_user_achievements(
                 array(
@@ -617,7 +618,7 @@ function badgeos_get_required_achievements_for_achievement( $achievement_id = 0 
 	}
 
 	// Don't retrieve requirements if achievement is not earned by steps
-	if ( badgeos_utilities::get_post_meta( $achievement_id, '_badgeos_earned_by', true ) != 'triggers' )
+	if ( get_post_meta( $achievement_id, '_badgeos_earned_by', true ) != 'triggers' )
 		return false;
 
 	// Grab our requirements for this achievement
@@ -677,14 +678,14 @@ function badgeos_get_points_based_achievements() {
  */
 function badgeos_bust_points_based_achievements_cache( $post_id ) {
 
-	$post = badgeos_utilities::badgeos_get_post($post_id);
+	$post = get_post($post_id);
 
 	// If the post is one of our achievement types,
 	// and the achievement is awarded by minimum points
 	if (
 		badgeos_is_achievement( $post )
 		&& (
-			'points' == badgeos_utilities::get_post_meta( $post_id, '_badgeos_earned_by', true )
+			'points' == get_post_meta( $post_id, '_badgeos_earned_by', true )
 			|| ( isset( $_POST['_badgeos_earned_by'] ) && 'points' == $_POST['_badgeos_earned_by'] )
 		)
 	) {
@@ -699,7 +700,7 @@ add_action( 'trash_post', 'badgeos_bust_points_based_achievements_cache' );
  * Helper function to retrieve an achievement post thumbnail
  *
  * Falls back first to parent achievement type's thumbnail,
- * and finally to a default BadgeOS.
+ * and finally to a default BadgeOS icon from Credly.
  *
  * @since  1.0.0
  * @param  integer $post_id    The achievement's post ID
@@ -707,67 +708,175 @@ add_action( 'trash_post', 'badgeos_bust_points_based_achievements_cache' );
  * @param  string  $class      A custom class to use for the image tag
  * @return string              Our formatted image tag
  */
-function badgeos_get_achievement_post_thumbnail( $post_id = 0, $image_size='', $class = 'badgeos-item-thumbnail' ) {
-	
-	$badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-	
-	$achievement_width = '50';
-	$achievement_height = '50';
-	$badgeos_not_earned_image_id = get_post_meta( $post_id, '_badgeos_not_earned_thumbnail', true );
-	
+function badgeos_get_achievement_post_thumbnail( $post_id = 0, $image_size = 'badgeos-achievement', $class = 'badgeos-item-thumbnail' ) {
+
 	// Get our badge thumbnail
-	if ( empty( $image_size ) ) {
-		if( isset( $badgeos_settings['badgeos_achievement_global_image_width'] ) && intval( $badgeos_settings['badgeos_achievement_global_image_width'] ) > 0 ) {
-			$achievement_width = intval( $badgeos_settings['badgeos_achievement_global_image_width'] );
-		}
-
-		if( isset( $badgeos_settings['badgeos_achievement_global_image_height'] ) && intval( $badgeos_settings['badgeos_achievement_global_image_height'] ) > 0 ) {
-			$achievement_height = intval( $badgeos_settings['badgeos_achievement_global_image_height'] );
-		}
-
-		$image_size = [ $achievement_width, $achievement_height ];
-	} 
-
 	$image = get_the_post_thumbnail( $post_id, $image_size, array( 'class' => $class ) );
 
-	if ( isset( $_GET['user_id'] ) ) {
-		$user_id = absint( $_GET['user_id'] );
-	} else {
-		$user_id = 0;
-	}
-	
-	// not earned post image
-	$achievements = badgeos_get_user_achievements( array( 'achievement_id' => absint( $post_id ),'user_id' => $user_id ) );
-	$class = count( $achievements ) > 0 ? ' earned' : '';
-	if ( ! empty( $badgeos_not_earned_image_id ) && trim( $class ) != 'earned' ) {
-		$image_url = wp_get_attachment_image_src( $badgeos_not_earned_image_id, $image_size )[0];
-		$image = '<img src="'.$image_url. '" width="' . $achievement_width . '" height="' . $achievement_height. '" class="' . $class .'">';
-	}
-	
 	// If we don't have an image...
 	if ( ! $image ) {
-		
+
 		// Grab our achievement type's post thumbnail
-        $achievement = get_page_by_path( badgeos_utilities::get_post_type( $post_id ), OBJECT, $badgeos_settings['achievement_main_post_type'] );
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $achievement = get_page_by_path( get_post_type(), OBJECT, $badgeos_settings['achievement_main_post_type'] );
 
         $image = is_object( $achievement ) ? get_the_post_thumbnail( $achievement->ID, $image_size, array( 'class' => $class ) ) : false;
 
-		// If we still have no image
+		// If we still have no image, use one from Credly
 		if ( ! $image ) {
-			// Available filter: 'badgeos_default_achievement_post_thumbnail'
-			if( ! empty( $image_size ) && is_array( $image_size ) ) {
-				$achievement_width = $image_size[0];
-				$achievement_height = $image_size[1];
+
+			// If we already have an array for image size
+			if ( is_array( $image_size ) ) {
+				// Write our sizes to an associative array
+				$image_sizes['width'] = $image_size[0];
+				$image_sizes['height'] = $image_size[1];
+
+			// Otherwise, attempt to grab the width/height from our specified image size
+			} else {
+				global $_wp_additional_image_sizes;
+				if ( isset( $_wp_additional_image_sizes[$image_size] ) )
+					$image_sizes = $_wp_additional_image_sizes[$image_size];
 			}
-			$directory_url = badgeos_get_directory_url();
-			$thumbnail_url = $directory_url. 'images/default_badge.png';
-			$image = '<img src="' . apply_filters( 'badgeos_default_achievement_post_thumbnail', $thumbnail_url ) . '" width="' . $achievement_width . '" height="' . $achievement_height. '" class="' . $class .'">';
+
+			// If we can't get the defined width/height, set our own
+			if ( empty( $image_sizes ) ) {
+				$image_sizes = array(
+					'width'  => 100,
+					'height' => 100
+				);
+			}
+
+			// Available filter: 'badgeos_default_achievement_post_thumbnail'
+			$image = '<img src="' . apply_filters( 'badgeos_default_achievement_post_thumbnail', 'https://credlyapp.s3.amazonaws.com/badges/af2e834c1e23ab30f1d672579d61c25a_15.png' ) . '" width="' . $image_sizes['width'] . '" height="' . $image_sizes['height'] . '" class="' . $class .'">';
+
 		}
 	}
 
 	// Finally, return our image tag
 	return $image;
 }
+
+/**
+ * Attempt to send an achievement to Credly if the user has send enabled
+ *
+ * @since 1.0.0
+ *
+ * @param int $user_id        The ID of the user earning the achievement
+ * @param int $achievement_id The ID of the achievement being earned
+ */
+function credly_issue_badge( $user_id, $achievement_id ) {
+
+	if ( 'true' === $GLOBALS['badgeos_credly']->user_enabled ) {
+		$GLOBALS['badgeos_credly']->post_credly_user_badge( $user_id, $achievement_id );
+	}
+
+}
+add_action( 'badgeos_award_achievement', 'credly_issue_badge', 10, 2 );
+
+/**
+ * Added approve/disapprove in bulk actions
+ *
+ * @since 1.0.0
+ *
+ * @param int $user_id        The ID of the user earning the achievement
+ * @param int $achievement_id The ID of the achievement being earned
+ */
+function badgeos_register_approve_submission_bulk_actions( $bulk_actions ) {
+
+    $bulk_actions['approve_submission'] = __( 'Approve', 'ldmqie' );
+    $bulk_actions['disapprove_submission'] = __( 'Deny', 'ldmqie' );
+    return $bulk_actions;
+}
+add_filter( 'bulk_actions-edit-submission', 'badgeos_register_approve_submission_bulk_actions' );
+
+/**
+ * Added approve/disapprove in bulk actions
+ *
+ * @since 1.0.0
+ *
+ * @param int $user_id        The ID of the user earning the achievement
+ * @param int $achievement_id The ID of the achievement being earned
+ */
+function badgeos_register_approve_nomination_bulk_actions( $bulk_actions ) {
+
+    $bulk_actions['approve_nomination'] = __( 'Approve', 'ldmqie' );
+    $bulk_actions['disapprove_nomination'] = __( 'Deny', 'ldmqie' );
+    return $bulk_actions;
+}
+add_filter( 'bulk_actions-edit-nomination', 'badgeos_register_approve_nomination_bulk_actions' );
+
+/**
+ * Handle approve/disapprove bulk actions
+ *
+ * @since 1.0.0
+ *
+ * @param int $user_id        The ID of the user earning the achievement
+ * @param int $achievement_id The ID of the achievement being earned
+ */
+function badgeos_register_approve_bulk_actions_handler( $redirect_to, $doaction, $post_ids ) {
+
+    if ( $doaction == 'approve_nomination' || $doaction == 'approve_submission' ) {
+        foreach( $post_ids as $post_id ) {
+            if( $doaction == 'approve_submission' ) {
+                $achievement_id = get_post_meta($post_id, '_badgeos_submission_achievement_id', true);
+                $status = get_post_meta($post_id, '_badgeos_submission_status', true);
+                $post_data = get_post($post_id);
+                $status_args = array(
+                    'achievement_id' => $achievement_id,
+                    'user_id' => $post_data->post_author,
+                    'submission_type' => 'submission'
+                );
+
+                badgeos_set_submission_status( $post_id, 'approved', $status_args );
+            } else if( $doaction == 'approve_nomination' ) {
+                $achievement_id = get_post_meta($post_id, '_badgeos_nomination_achievement_id', true);
+                $status = get_post_meta($post_id, '_badgeos_nomination_status', true);
+                $nomination_user_id = get_post_meta($post_id, '_badgeos_nomination_user_id', true);
+                $nominating_user_id = get_post_meta($post_id, '_badgeos_nominating_user_id', true);
+                $status_args = array(
+                    'achievement_id' => $achievement_id,
+                    'user_id' => $nomination_user_id,
+                    'from_user_id' => $nominating_user_id,
+                    'submission_type' => 'nomination'
+                );
+
+                badgeos_set_submission_status( $post_id, 'approved', $status_args );
+            }
+        }
+    } else if ( $doaction == 'disapprove_nomination' || $doaction == 'disapprove_submission' ) {
+        foreach( $post_ids as $post_id ) {
+            if( $doaction == 'disapprove_submission' ) {
+                $post_data = get_post( $post_id );
+                $achievement_id = get_post_meta($post_id, '_badgeos_submission_achievement_id', true);
+                $status = get_post_meta($post_id, '_badgeos_submission_status', true);
+                $status_args = array(
+                    'achievement_id' => $achievement_id,
+                    'user_id' => $post_data->post_author,
+                    'submission_type' => 'submission'
+                );
+
+                badgeos_set_submission_status( $post_id, 'denied', $status_args );
+            } else if( $doaction == 'disapprove_nomination' ) {
+                $achievement_id = get_post_meta($post_id, '_badgeos_nomination_achievement_id', true);
+                $status = get_post_meta($post_id, '_badgeos_nomination_status', true);
+                $nomination_user_id = get_post_meta($post_id, '_badgeos_nomination_user_id', true);
+                $nominating_user_id = get_post_meta($post_id, '_badgeos_nominating_user_id', true);
+                $status_args = array(
+                    'achievement_id' => $achievement_id,
+                    'user_id' => $nomination_user_id,
+                    'from_user_id' => $nominating_user_id,
+                    'submission_type' => 'nomination'
+                );
+
+                badgeos_set_submission_status( $post_id, 'denied', $status_args );
+            }
+        }
+    }
+
+    return $redirect_to;
+}
+add_filter( 'handle_bulk_actions-edit-submission', 'badgeos_register_approve_bulk_actions_handler', 10, 3 );
+add_filter( 'handle_bulk_actions-edit-nomination', 'badgeos_register_approve_bulk_actions_handler', 10, 3 );
 
 /**
  * Get an array of all users who have earned a given achievement
@@ -828,7 +937,7 @@ function badgeos_get_achievement_earners_list( $achievement_id = 0 ) {
 		$output .= '<ul class="badgeos-achievement-earners-list achievement-' . $achievement_id . '-earners-list">';
 		foreach ( $earners as $user ) {
 			$user_content = '<li><a href="' . get_author_posts_url( $user->ID ) . '">' . get_avatar( $user->ID ) . '</a></li>';
-            $output .= apply_filters( 'badgeos_get_achievement_earners_list_user', $user_content, $achievement_id, $user->ID );
+			$output .= apply_filters( 'badgeos_get_achievement_earners_list_user', $user_content, $user->ID );
 		}
 		$output .= '</ul>';
 	}
@@ -846,7 +955,7 @@ function badgeos_get_achievement_earners_list( $achievement_id = 0 ) {
 function badgeos_ms_show_all_achievements(){
 	$ms_show_all_achievements = NULL;
 	if ( is_multisite() ) {
-    	$badgeos_settings = badgeos_utilities::get_option( 'badgeos_settings' );
+    	$badgeos_settings = get_option( 'badgeos_settings' );
     	$ms_show_all_achievements = ( isset( $badgeos_settings['ms_show_all_achievements'] ) ) ? $badgeos_settings['ms_show_all_achievements'] : 'disabled';
     	if( 'enabled' == $ms_show_all_achievements )
     		return true;
@@ -883,11 +992,11 @@ function badgeos_get_network_site_ids() {
 function badgeos_achievement_set_default_thumbnail( $post_id ) {
 	global $pagenow;
 
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 	if (
 		! (
 			badgeos_is_achievement( $post_id )
-			|| $badgeos_settings['achievement_main_post_type'] == badgeos_utilities::get_post_type( $post_id )
+			|| $badgeos_settings['achievement_main_post_type'] == get_post_type( $post_id )
 		)
 		|| ( defined('DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 		|| ! current_user_can( 'edit_post', $post_id )
@@ -901,8 +1010,8 @@ function badgeos_achievement_set_default_thumbnail( $post_id ) {
 	$achievement_type = '';
 
 	// Get the thumbnail of our parent achievement
-	if ( $badgeos_settings['achievement_main_post_type'] !== badgeos_utilities::get_post_type( $post_id ) ) {
-		$achievement_type = get_page_by_path( badgeos_utilities::get_post_type( $post_id ), OBJECT, $badgeos_settings['achievement_main_post_type'] );
+	if ( $badgeos_settings['achievement_main_post_type'] !== get_post_type( $post_id ) ) {
+		$achievement_type = get_page_by_path( get_post_type( $post_id ), OBJECT, $badgeos_settings['achievement_main_post_type'] );
 
 		if ( $achievement_type ) {
 			$thumbnail_id = get_post_thumbnail_id( $achievement_type->ID );
@@ -912,11 +1021,9 @@ function badgeos_achievement_set_default_thumbnail( $post_id ) {
 	// If there is no thumbnail set, load in our default image
 	if ( empty( $thumbnail_id ) ) {
 		global $wpdb;
- 
+
 		// Grab the default image
-		$directory_url = badgeos_get_directory_url();
-		$thumbnail_url = $directory_url. 'images/default_badge.png';
-		$file = apply_filters( 'badgeos_default_achievement_post_thumbnail', $thumbnail_url );
+		$file = apply_filters( 'badgeos_default_achievement_post_thumbnail', 'https://credlyapp.s3.amazonaws.com/badges/af2e834c1e23ab30f1d672579d61c25a_15.png' );
 
 		// Check for an existing copy of our default image
 		$file_name = 'af2e834c1e23ab30f1d672579d61c25a_15';
@@ -982,7 +1089,7 @@ add_action( 'save_post', 'badgeos_achievement_set_default_thumbnail' );
  * @param object $post       Post object.
  */
 function badgeos_flush_rewrite_on_published_achievement( $new_status, $old_status, $post ) {
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
     if ( $badgeos_settings['achievement_main_post_type'] === $post->post_type && 'publish' === $new_status && 'publish' !== $old_status ) {
 
         badgeos_flush_rewrite_rules();
@@ -1015,7 +1122,7 @@ function badgeos_flush_rewrite_rules() {
  */
 function badgeos_maybe_update_achievement_type( $data = array(), $post_args = array() ) {
 	if ( badgeos_achievement_type_changed( $post_args ) ) {
-		$original_type = badgeos_utilities::badgeos_get_post( $post_args['ID'] )->post_name;
+		$original_type = get_post( $post_args['ID'] )->post_name;
 		$new_type = wp_unique_post_slug( sanitize_title( $post_args['post_title'] ), $post_args['ID'], $post_args['post_status'], $post_args['post_type'], $post_args['post_parent'] );
 		$data['post_name'] = badgeos_update_achievement_types( $original_type, $new_type );
 		add_filter( 'redirect_post_location', 'badgeos_achievement_type_rename_redirect', 99 );
@@ -1037,10 +1144,10 @@ function badgeos_achievement_type_changed( $post_args = array() ) {
 		return false;
 	}
 
-	$original_post = ( !empty( $post_args['ID'] ) && isset( $post_args['ID'] ) ) ? badgeos_utilities::badgeos_get_post( $post_args['ID'] ) : null;
+	$original_post = ( !empty( $post_args['ID'] ) && isset( $post_args['ID'] ) ) ? get_post( $post_args['ID'] ) : null;
 	$status = false;
 	if ( is_object( $original_post ) ) {
-        $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+        $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 		if (
             $badgeos_settings['achievement_main_post_type'] === $post_args['post_type']
 			&& $original_post->post_status !== 'auto-draft'
@@ -1108,7 +1215,7 @@ function badgeos_update_achievements_achievement_types( $original_type = '', $ne
  */
 function badgeos_update_p2p_achievement_types( $original_type = '', $new_type = '' ) {
 	global $wpdb;
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
 	$p2p_relationships = array(
         trim( $badgeos_settings['achievement_step_post_type'] )."-to-{$original_type}" => trim( $badgeos_settings['achievement_step_post_type'] )."-to-{$new_type}",
         "{$original_type}-to-".trim( $badgeos_settings['achievement_step_post_type'] ) => "{$new_type}-to-".trim( $badgeos_settings['achievement_step_post_type'] )
@@ -1136,7 +1243,7 @@ function badgeos_update_earned_meta_achievement_types( $original_type = '', $new
 			foreach ( $meta->meta_value as $site_id => $achievements ) {
 				$meta->meta_value[ $site_id ] = badgeos_update_meta_achievement_types( $achievements, $original_type, $new_type );
 			}
-			badgeos_utilities::update_user_meta( $meta->user_id, $meta->meta_key, $meta->meta_value );
+			update_user_meta( $meta->user_id, $meta->meta_key, $meta->meta_value );
 		}
 	}
 	
@@ -1159,7 +1266,7 @@ function badgeos_update_active_meta_achievement_types( $original_type = '', $new
 	if ( ! empty( $metas ) ) {
 		foreach ( $metas as $meta ) {
 			$meta->meta_value = badgeos_update_meta_achievement_types( $meta->meta_value, $original_type, $new_type );
-			badgeos_utilities::update_user_meta( $meta->user_id, $meta->meta_key, $meta->meta_value );
+			update_user_meta( $meta->user_id, $meta->meta_key, $meta->meta_value );
 		}
 	}
 }
@@ -1251,144 +1358,9 @@ function badgeos_achievement_type_rename_redirect( $location = '' ) {
  * @return array $messages Compiled list of messages.
  */
 function badgeos_achievement_type_update_messages( $messages ) {
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
+    $badgeos_settings = ( $exists = get_option( 'badgeos_settings' ) ) ? $exists : array();
     $messages[ trim( $badgeos_settings['achievement_main_post_type'] ) ] = array_fill( 1, 10, __( 'Achievement Type saved successfully.', 'badgeos' ) );
     $messages[ trim( $badgeos_settings['achievement_main_post_type'] ) ]['99'] = sprintf( __('Achievement Type renamed successfully. <p>All achievements of this type, and all active and earned user achievements, have been updated <strong>automatically</strong>.</p> All shortcodes, %s, and URIs that reference the old achievement type slug must be updated <strong>manually</strong>.', 'badgeos'), '<a href="' . esc_url( admin_url( 'widgets.php' ) ) . '">' . __( 'widgets', 'badgeos' ) . '</a>' );
     return $messages;
 }
 add_filter( 'post_updated_messages', 'badgeos_achievement_type_update_messages' );
-
-
-/**
- * Add image not earned badge image metabox for achivement-types.
- * @since 3.6.8
- */
-function badgeos_not_earned_image_add_metabox () {
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    $achievement_main_post_type = $badgeos_settings['achievement_main_post_type'];
-    add_meta_box( 
-        'not_earned_image_div', 
-        __( 'Not Earned Image', 'badgeos' ), 
-        'badgeos_not_earned_image_metabox_cb', 
-        array( $achievement_main_post_type , badgeos_get_achievement_types_slugs() ), 
-        'side', 
-        'low'
-    );
-}
-add_action( 'add_meta_boxes', 'badgeos_not_earned_image_add_metabox' );
-
-/**
- * Callback function for not earned badge image metabox for achivement-types.
- * @param integer $post_id The post ID of the post being saved
- * @since 3.6.8
- */
-function badgeos_not_earned_image_metabox_cb ( $post ) {
-	global $content_width, $_wp_additional_image_sizes;
-	$post_id = $post->ID;
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-
-    $old_content_width = $content_width;
-    $content_width = 254;
-
-    $image_id = get_post_meta( $post->ID, '_badgeos_not_earned_thumbnail', true );
-    $achievement_type = '';
-
-    // Get the thumbnail of our parent achievement
-    if ( empty( $image_id ) && $badgeos_settings['achievement_main_post_type'] !== badgeos_utilities::get_post_type( $post_id ) ) {
-        $achievement_type = get_page_by_path( badgeos_utilities::get_post_type( $post_id ), OBJECT, $badgeos_settings['achievement_main_post_type'] );
-
-        if ( $achievement_type ) {
-            $image_id = get_post_meta( $achievement_type->ID, '_badgeos_not_earned_thumbnail', true );
-        }
-    }
-
-    if ( ! empty( $image_id ) ) {
-        if ( ! isset( $_wp_additional_image_sizes['post-thumbnail'] ) ) {
-            $thumbnail_html = wp_get_attachment_image( $image_id, array( $content_width, $content_width ) );
-        } else {
-            $thumbnail_html = wp_get_attachment_image( $image_id, 'post-thumbnail' );
-        }
-        if ( ! empty( $thumbnail_html ) ) {
-            $content = $thumbnail_html;
-            $content .= '<p class="hide-if-no-js">';
-            $content .= '<a href="javascript:;" id="remove_not_earned_image_button" >' . esc_html__( 'Remove image', 'badgeos' ) . '</a>';
-            $content .= '</p>';
-            $content .= '<input type="hidden" id="upload_not_earned_image" name="_badgeos_not_earned_thumbnail" value="' . esc_attr( $image_id ) . '" />';
-        }
-        $content_width = $old_content_width;
-    } else {
-        $content = '<img src="" style="width:' . esc_attr( $content_width ) . 'px;height:auto;border:0;display:none;" />';
-        $content .= '<p class="hide-if-no-js">';
-        $content .= '<a title="' . esc_attr__( 'Set image', 'badgeos' ) . '" href="javascript:;" id="upload_not_earned_image_button" data-uploader_title="' . esc_attr__( 'Choose an image', 'badgeos' ) . '" data-uploader_button_text="' . esc_attr__( 'Set image', 'badgeos' ) . '">' . esc_html__( 'Set image', 'badgeos' ) . '</a>';
-        $content .= '</p>';
-        $content .= '<input type="hidden" id="upload_not_earned_image" name="_badgeos_not_earned_thumbnail" value="" />';
-
-    }
-    echo $content;
-}
-
-/**
- * Set default not earned achievement image on achievement post save
- *
- * @since 3.6.8
- * @param integer $post_id The post ID of the post being saved
- * @return mixed    post ID if nothing to do, void otherwise.
- */
-function badgeos_set_default_not_earned_image_thumbnail( $post_id ) {
-    if ( ! empty( $_POST['_badgeos_not_earned_thumbnail'] ) && isset( $_POST['_badgeos_not_earned_thumbnail'] ) ) {
-        update_post_meta( $post_id, '_badgeos_not_earned_thumbnail', absint( $_POST['_badgeos_not_earned_thumbnail'] ) );
-        return;
-    }
-    $badgeos_settings = ( $exists = badgeos_utilities::get_option( 'badgeos_settings' ) ) ? $exists : array();
-    $thumbnail_id = 0;
-    $achievement_type = '';
-    // Get the thumbnail of our parent achievement
-    if ( $badgeos_settings['achievement_main_post_type'] !== badgeos_utilities::get_post_type( $post_id ) ) {
-        $achievement_type = get_page_by_path( badgeos_utilities::get_post_type( $post_id ), OBJECT, $badgeos_settings['achievement_main_post_type'] );
-
-        if ( $achievement_type ) {
-            $thumbnail_id = get_post_meta( $achievement_type->ID, '_badgeos_not_earned_thumbnail', true );
-        	update_post_meta( $post_id, '_badgeos_not_earned_thumbnail', $thumbnail_id );
-        }
-    }
-    // If there is no thumbnail set, load in our default image
-    if ( empty( $thumbnail_id ) ) {
-        global $wpdb;
-        // Grab the default image
-        $thumbnail_id = '';
-        $directory_url = badgeos_get_directory_url();
-        $file = $directory_url. 'images/badgeos_question.png';
-        $file_name = 'badgeos_question';
-        $attachment = $wpdb->get_col(
-            $wpdb->prepare(
-                "SELECT ID FROM $wpdb->posts WHERE post_type = '%s' AND guid LIKE '%%badgeos_question%%' ", 'attachment'
-            )
-        );
-
-        if ( !empty( $attachment[0] ) ) {
-            $thumbnail_id = $attachment[0];
-        } else {
-			// Download file to temp location
-			require_once(ABSPATH . "wp-admin" . '/includes/image.php');
-			require_once(ABSPATH . "wp-admin" . '/includes/file.php');
-			require_once(ABSPATH . "wp-admin" . '/includes/media.php');
-            $tmp = download_url( $file );
-
-            // Set variables for storage
-            // fix file filename for query strings
-            preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', $file, $matches );
-            $file_array['name']     = basename( $matches[0] );
-            $file_array['tmp_name'] = $tmp;
-
-            // If error storing temporarily, unlink
-            if ( is_wp_error( $tmp ) ) {
-                @unlink( $file_array['tmp_name'] );
-                $file_array['tmp_name'] = '';
-            }
-            // Upload the image
-            $thumbnail_id = media_handle_sideload( $file_array, $post_id );
-        }    
-        update_post_meta( $post_id, '_badgeos_not_earned_thumbnail', $thumbnail_id );
-    }
-}
-add_action( 'save_post', 'badgeos_set_default_not_earned_image_thumbnail', 10, 1 );

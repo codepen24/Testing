@@ -103,5 +103,5 @@ function badgeos_get_post( $post_id ) {
     }
 
     global $wpdb;
-    return badgeos_utilities::badgeos_get_post( $post_id );
+    return get_post( $post_id );
 }

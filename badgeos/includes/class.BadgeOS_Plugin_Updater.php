@@ -47,8 +47,8 @@ class BadgeOS_Plugin_Updater {
 		$this->item_name = $_api_data['item_name'];
 
 		// Setup the license
-		$this->api_data['license'] = trim( badgeos_utilities::get_option( $this->slug . '-license_key' ) );
-		$this->api_data['license_status'] = trim( badgeos_utilities::get_option( $this->slug . '-license_status' ) );
+		$this->api_data['license'] = trim( get_option( $this->slug . '-license_key' ) );
+		$this->api_data['license_status'] = trim( get_option( $this->slug . '-license_status' ) );
 
 		// Set up hooks.
 		$this->hook();
@@ -75,13 +75,9 @@ class BadgeOS_Plugin_Updater {
 	 */
 	public function validate_license( $input ) {
 
-		$original_settings = badgeos_utilities::get_option( 'badgeos_settings' );
-		
-		$original_settings['licenses'][$this->slug] = isset( $input['licenses'][$this->slug] ) ? sanitize_text_field( $input['licenses'][$this->slug] ) : $original_settings['licenses'][$this->slug];
-
 		// Activate our license if we have license data
-		if ( isset( $original_settings['licenses'][$this->slug] ) && ! empty( $original_settings['licenses'][$this->slug] ) )
-			$this->activate_license( $original_settings['licenses'][$this->slug] );
+		if ( isset( $input['licenses'][$this->slug] ) && ! empty( $input['licenses'][$this->slug] ) )
+			$this->activate_license( $input['licenses'][$this->slug] );
 
 		// Otherwise, deactivate the previous license
 		else
@@ -221,8 +217,7 @@ class BadgeOS_Plugin_Updater {
 		$api_params = array(
 			'edd_action' => 'activate_license',
 			'license'    => trim( $license ),
-			'item_name'  => urlencode( $this->item_name ),
-			'url'        => home_url()
+			'item_name'  => urlencode( $this->item_name )
 		);
 
 		// Call the remote API
@@ -237,8 +232,8 @@ class BadgeOS_Plugin_Updater {
 		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
 		// Store the data in the options table
-		badgeos_utilities::update_option( $this->slug . '-license_key', $license );
-		badgeos_utilities::update_option( $this->slug . '-license_status', $license_data->license );
+		update_option( $this->slug . '-license_key', $license );
+		update_option( $this->slug . '-license_status', $license_data->license );
 
 		return true;
 
@@ -256,7 +251,7 @@ class BadgeOS_Plugin_Updater {
 			return false; // get out if we didn't click the Activate button
 
 		// Retrieve the license from the database
-		$license = trim( badgeos_utilities::get_option( $this->slug . '-license_key' ) );
+		$license = trim( get_option( $this->slug . '-license_key' ) );
 
 		// If there isn't one, bail here
 		if ( empty( $license ) )
@@ -266,8 +261,7 @@ class BadgeOS_Plugin_Updater {
 		$api_params = array(
 			'edd_action' => 'deactivate_license',
 			'license'    => $license,
-			'item_name'  => urlencode( $this->item_name ), // the name of our product in EDD
-			'url'        => home_url()
+			'item_name'  => urlencode( $this->item_name ) // the name of our product in EDD
 		);
 
 		// Call the custom API.
@@ -282,8 +276,8 @@ class BadgeOS_Plugin_Updater {
 		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
 		// Clear our stored license options
-		badgeos_utilities::delete_option( $this->slug . '-license_key' );
-		badgeos_utilities::update_option( $this->slug . '-license_status', 'inactive' );
+		delete_option( $this->slug . '-license_key' );
+		update_option( $this->slug . '-license_status', 'inactive' );
 
 		return true;
 	}
@@ -297,13 +291,12 @@ class BadgeOS_Plugin_Updater {
 	 */
 	public function check_license() {
 
-		$license = trim( badgeos_utilities::get_option( $this->slug . '-license_key' ) );
+		$license = trim( get_option( $this->slug . '-license_key' ) );
 
 		$api_params = array(
 			'edd_action' => 'check_license',
 			'license'    => $license,
-			'item_name'  => urlencode( $this->item_name ),
-			'url'        => home_url()
+			'item_name'  => urlencode( $this->item_name )
 		);
 
 		// Call the custom API.
